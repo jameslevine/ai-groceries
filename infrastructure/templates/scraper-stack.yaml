@@ -1,0 +1,323 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AI Groceries - Scraper Infrastructure (SQS, EventBridge, Lambda, S3)
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+  ProjectName:
+    Type: String
+    Default: ai-groceries
+  ProductsTableName:
+    Type: String
+    Description: Name of the Products DynamoDB table
+  PriceHistoryTableName:
+    Type: String
+    Description: Name of the Price History DynamoDB table
+
+Resources:
+  # ==================== S3 Bucket for Raw Scrape Data ====================
+  RawDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${ProjectName}-${Environment}-raw-data'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldRawData
+            Status: Enabled
+            ExpirationInDays: 30
+            Prefix: ''
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # ==================== SQS Queues ====================
+
+  # Main scrape jobs queue
+  ScrapeJobsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-scrape-jobs'
+      VisibilityTimeout: 900
+      MessageRetentionPeriod: 86400
+      ReceiveMessageWaitTimeSeconds: 20
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ScrapeJobsDLQ.Arn
+        maxReceiveCount: 3
+
+  # Dead letter queue for failed scrape jobs
+  ScrapeJobsDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-scrape-jobs-dlq'
+      MessageRetentionPeriod: 1209600
+
+  # Hot products refresh queue
+  HotProductsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-${Environment}-hot-products'
+      VisibilityTimeout: 900
+      MessageRetentionPeriod: 86400
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ScrapeJobsDLQ.Arn
+        maxReceiveCount: 3
+
+  # ==================== Lambda Layer (Chromium for Puppeteer) ====================
+  # Note: For Tier 3 scrapers that need Puppeteer, use @sparticuz/chromium layer
+  # This is a placeholder — the actual layer ARN should be configured per region
+
+  # ==================== Scraper Lambda ====================
+  ScraperFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-scraper'
+      CodeUri: ../../backend/dist/
+      Handler: handlers/scraper-handler.handler
+      Runtime: nodejs20.x
+      Timeout: 900
+      MemorySize: 1024
+      Description: Scrapes UK supermarket websites for product pricing data
+      Environment:
+        Variables:
+          NODE_ENV: !Ref Environment
+          RAW_DATA_BUCKET: !Sub '${ProjectName}-${Environment}-raw-data'
+          PRODUCTS_TABLE: !Ref ProductsTableName
+          PRICE_HISTORY_TABLE: !Ref PriceHistoryTableName
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Sub '${ProjectName}-${Environment}-raw-data'
+        - SQSPollerPolicy:
+            QueueName: !GetAtt ScrapeJobsQueue.QueueName
+        - SQSPollerPolicy:
+            QueueName: !GetAtt HotProductsQueue.QueueName
+      Events:
+        ScrapeJobsEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ScrapeJobsQueue.Arn
+            BatchSize: 1
+            MaximumBatchingWindowInSeconds: 0
+        HotProductsEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt HotProductsQueue.Arn
+            BatchSize: 1
+            MaximumBatchingWindowInSeconds: 0
+
+  # ==================== Transform Lambda ====================
+  TransformFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-transform'
+      CodeUri: ../../backend/dist/
+      Handler: handlers/transform-handler.handler
+      Runtime: nodejs20.x
+      Timeout: 300
+      MemorySize: 512
+      Description: Transforms raw scrape data and ingests into DynamoDB
+      Environment:
+        Variables:
+          NODE_ENV: !Ref Environment
+          PRODUCTS_TABLE: !Ref ProductsTableName
+          PRICE_HISTORY_TABLE: !Ref PriceHistoryTableName
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Sub '${ProjectName}-${Environment}-raw-data'
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductsTableName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PriceHistoryTableName
+
+  # Permission for S3 to invoke the Transform Lambda
+  TransformFunctionS3Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt TransformFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::${ProjectName}-${Environment}-raw-data'
+      SourceAccount: !Ref AWS::AccountId
+
+  # ==================== Price History DynamoDB Table ====================
+  PriceHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref PriceHistoryTableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  # ==================== EventBridge Rules ====================
+
+  # Daily full crawl at 4:00 AM UTC
+  DailyFullCrawlRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub '${ProjectName}-${Environment}-daily-full-crawl'
+      Description: Triggers daily full price scrape for all stores at 4am
+      ScheduleExpression: 'cron(0 4 * * ? *)'
+      State: ENABLED
+      Targets:
+        - Id: SendToSQS
+          Arn: !GetAtt DailyFullCrawlFunction.Arn
+
+  DailyFullCrawlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-daily-crawl-trigger'
+      CodeUri: ../../backend/dist/
+      Handler: handlers/crawl-trigger.dailyHandler
+      Runtime: nodejs20.x
+      Timeout: 30
+      MemorySize: 128
+      Description: Sends scrape jobs to SQS for all available stores
+      Environment:
+        Variables:
+          SCRAPE_JOBS_QUEUE_URL: !Ref ScrapeJobsQueue
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt ScrapeJobsQueue.QueueName
+      Events:
+        DailyCrawl:
+          Type: Schedule
+          Properties:
+            Schedule: 'cron(0 4 * * ? *)'
+            Description: Daily full crawl at 4am UTC
+            Enabled: true
+
+  # Hot products refresh every 6 hours
+  HotProductsRefreshRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub '${ProjectName}-${Environment}-hot-products-refresh'
+      Description: Refreshes top products every 6 hours
+      ScheduleExpression: 'rate(6 hours)'
+      State: ENABLED
+
+  HotProductsRefreshFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-hot-products-trigger'
+      CodeUri: ../../backend/dist/
+      Handler: handlers/crawl-trigger.hotProductsHandler
+      Runtime: nodejs20.x
+      Timeout: 30
+      MemorySize: 128
+      Description: Sends hot product refresh jobs to SQS
+      Environment:
+        Variables:
+          HOT_PRODUCTS_QUEUE_URL: !Ref HotProductsQueue
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt HotProductsQueue.QueueName
+      Events:
+        HotProductsRefresh:
+          Type: Schedule
+          Properties:
+            Schedule: 'rate(6 hours)'
+            Description: Hot products refresh every 6 hours
+            Enabled: true
+
+  # ==================== CloudWatch Alarms ====================
+
+  # DLQ depth alarm
+  DLQDepthAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-${Environment}-scraper-dlq-depth'
+      AlarmDescription: Alert when scraper dead letter queue has messages
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt ScrapeJobsDLQ.QueueName
+
+  # Scraper error alarm
+  ScraperErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-${Environment}-scraper-errors'
+      AlarmDescription: Alert when scraper Lambda has errors
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ScraperFunction
+
+  # Transform error alarm
+  TransformErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-${Environment}-transform-errors'
+      AlarmDescription: Alert when transform Lambda has errors
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref TransformFunction
+
+Outputs:
+  RawDataBucketName:
+    Description: S3 bucket for raw scrape data
+    Value: !Ref RawDataBucket
+  ScrapeJobsQueueUrl:
+    Description: SQS queue URL for scrape jobs
+    Value: !Ref ScrapeJobsQueue
+  ScrapeJobsQueueArn:
+    Description: SQS queue ARN for scrape jobs
+    Value: !GetAtt ScrapeJobsQueue.Arn
+  HotProductsQueueUrl:
+    Description: SQS queue URL for hot products
+    Value: !Ref HotProductsQueue
+  DLQUrl:
+    Description: Dead letter queue URL
+    Value: !Ref ScrapeJobsDLQ
+  ScraperFunctionArn:
+    Description: Scraper Lambda ARN
+    Value: !GetAtt ScraperFunction.Arn
+  TransformFunctionArn:
+    Description: Transform Lambda ARN
+    Value: !GetAtt TransformFunction.Arn
+  PriceHistoryTableName:
+    Description: Price History DynamoDB table name
+    Value: !Ref PriceHistoryTable

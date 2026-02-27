@@ -1,0 +1,234 @@
+meals:
+  get:
+    tags:
+      - Meals
+    summary: Get meal plans by date range
+    description: Returns meal plan entries for a specified date range (typically a week).
+    operationId: getMeals
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Start date (inclusive)
+        example: '2025-06-23'
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: End date (inclusive)
+        example: '2025-06-29'
+    responses:
+      '200':
+        description: Meal plan entries
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '../schemas/meal.yaml#/MealPlan'
+      '400':
+        description: startDate and endDate are required
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  post:
+    tags:
+      - Meals
+    summary: Create a meal plan entry
+    description: Adds a meal to a specific date and meal type slot.
+    operationId: createMeal
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/meal.yaml#/CreateMealRequest'
+    responses:
+      '201':
+        description: Meal created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/meal.yaml#/MealPlan'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+meals-mealId:
+  patch:
+    tags:
+      - Meals
+    summary: Update a meal plan entry
+    description: Updates a meal's recipe, items, notes, or servings.
+    operationId: updateMeal
+    parameters:
+      - name: mealId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/meal.yaml#/UpdateMealRequest'
+    responses:
+      '200':
+        description: Meal updated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/meal.yaml#/MealPlan'
+      '404':
+        description: Meal not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  delete:
+    tags:
+      - Meals
+    summary: Delete a meal plan entry
+    description: Removes a meal from the plan.
+    operationId: deleteMeal
+    parameters:
+      - name: mealId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: date
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Meal date
+      - name: mealType
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Meal type
+    responses:
+      '204':
+        description: Meal deleted
+      '404':
+        description: Meal not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+meals-copy-week:
+  post:
+    tags:
+      - Meals
+    summary: Copy a week's meal plan
+    description: Copies all meals from one week to another.
+    operationId: copyMealWeek
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/meal.yaml#/CopyWeekRequest'
+    responses:
+      '201':
+        description: Week copied
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '../schemas/meal.yaml#/MealPlan'
+                copiedCount:
+                  type: integer
+                  description: Number of meals copied
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+meals-generate-list:
+  post:
+    tags:
+      - Meals
+    summary: Generate shopping list from meal plan
+    description: |
+      Aggregates all ingredients from meals in a date range and creates a shopping list.
+      Optionally deducts items already in inventory.
+    operationId: generateListFromMeals
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/meal.yaml#/GenerateListFromMealsRequest'
+    responses:
+      '201':
+        description: Shopping list generated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/shopping-list.yaml#/ShoppingList'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+meals-nutrition-summary:
+  get:
+    tags:
+      - Meals
+    summary: Get nutrition summary
+    description: Returns daily and weekly nutrition breakdown for a date range.
+    operationId: getMealNutritionSummary
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      '200':
+        description: Nutrition summary
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/meal.yaml#/NutritionSummary'
+      '400':
+        description: startDate and endDate are required
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'

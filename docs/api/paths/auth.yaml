@@ -1,0 +1,185 @@
+register:
+  post:
+    tags:
+      - Auth
+    summary: Register a new user
+    description: Creates a new user account via Cognito. A verification email will be sent.
+    operationId: registerUser
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/auth.yaml#/RegisterRequest'
+    responses:
+      '201':
+        description: User registered successfully. Verification email sent.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/SuccessMessage'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '409':
+        description: Email already registered
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+login:
+  post:
+    tags:
+      - Auth
+    summary: Log in
+    description: Authenticates a user and returns JWT tokens.
+    operationId: loginUser
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/auth.yaml#/LoginRequest'
+    responses:
+      '200':
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/auth.yaml#/AuthTokens'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '401':
+        description: Invalid credentials
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '403':
+        description: Email not verified
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+verify:
+  post:
+    tags:
+      - Auth
+    summary: Verify email address
+    description: Verifies a user's email address using the code sent during registration.
+    operationId: verifyEmail
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/auth.yaml#/VerifyEmailRequest'
+    responses:
+      '200':
+        description: Email verified successfully
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/SuccessMessage'
+      '400':
+        description: Invalid or expired verification code
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+forgot-password:
+  post:
+    tags:
+      - Auth
+    summary: Request password reset
+    description: Sends a password reset code to the user's email address.
+    operationId: forgotPassword
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/auth.yaml#/ForgotPasswordRequest'
+    responses:
+      '200':
+        description: Reset code sent (always returns 200 to prevent email enumeration)
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/SuccessMessage'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+reset-password:
+  post:
+    tags:
+      - Auth
+    summary: Reset password
+    description: Resets the user's password using the code from forgot-password.
+    operationId: resetPassword
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/auth.yaml#/ResetPasswordRequest'
+    responses:
+      '200':
+        description: Password reset successfully
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/SuccessMessage'
+      '400':
+        description: Invalid or expired reset code
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+refresh-token:
+  post:
+    tags:
+      - Auth
+    summary: Refresh access token
+    description: Uses a refresh token to obtain new access and ID tokens.
+    operationId: refreshToken
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/auth.yaml#/RefreshTokenRequest'
+    responses:
+      '200':
+        description: Tokens refreshed successfully
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/auth.yaml#/AuthTokens'
+      '401':
+        description: Invalid or expired refresh token
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'

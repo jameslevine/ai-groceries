@@ -1,0 +1,296 @@
+User:
+  type: object
+  properties:
+    userId:
+      type: string
+      format: uuid
+      description: Unique user identifier (Cognito sub)
+      example: 550e8400-e29b-41d4-a716-446655440000
+    email:
+      type: string
+      format: email
+      description: User email address
+      example: john.smith@example.co.uk
+    firstName:
+      type: string
+      description: User first name
+      example: John
+    lastName:
+      type: string
+      description: User last name
+      example: Smith
+    familyId:
+      type: string
+      format: uuid
+      description: Family group identifier
+      example: 660e8400-e29b-41d4-a716-446655440001
+    preferences:
+      $ref: '#/UserPreferences'
+    rewardCards:
+      type: array
+      items:
+        $ref: '#/RewardCard'
+      description: Stored reward/loyalty cards
+    createdAt:
+      type: string
+      format: date-time
+      description: Account creation timestamp
+      example: '2025-01-15T10:30:00.000Z'
+    updatedAt:
+      type: string
+      format: date-time
+      description: Last update timestamp
+      example: '2025-06-20T14:22:00.000Z'
+  required:
+    - userId
+    - email
+    - firstName
+    - lastName
+    - familyId
+    - preferences
+    - createdAt
+    - updatedAt
+
+UserPreferences:
+  type: object
+  properties:
+    currency:
+      type: string
+      description: Preferred currency code
+      default: GBP
+      example: GBP
+    language:
+      type: string
+      description: Preferred language code
+      default: en
+      example: en
+    preferredStores:
+      type: array
+      items:
+        $ref: './common.yaml#/UKSupermarket'
+      description: User's preferred supermarkets for price comparison
+      example: [TESCO, SAINSBURYS, ALDI]
+    dietaryRestrictions:
+      type: array
+      items:
+        type: string
+      description: Dietary restrictions/preferences
+      example: [vegetarian, gluten-free]
+    householdSize:
+      type: integer
+      minimum: 1
+      maximum: 20
+      description: Number of people in household
+      default: 2
+      example: 4
+    notificationsEnabled:
+      type: boolean
+      description: Whether push notifications are enabled
+      default: true
+      example: true
+    expiryAlertDays:
+      type: integer
+      minimum: 1
+      maximum: 30
+      description: Days before expiry to send alert
+      default: 3
+      example: 3
+  required:
+    - currency
+    - language
+    - householdSize
+    - notificationsEnabled
+    - expiryAlertDays
+
+UpdateUserRequest:
+  type: object
+  properties:
+    firstName:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: Updated first name
+      example: Jonathan
+    lastName:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: Updated last name
+      example: Smith
+
+UpdatePreferencesRequest:
+  type: object
+  properties:
+    currency:
+      type: string
+      example: GBP
+    language:
+      type: string
+      example: en
+    preferredStores:
+      type: array
+      items:
+        $ref: './common.yaml#/UKSupermarket'
+      example: [TESCO, ALDI, LIDL]
+    dietaryRestrictions:
+      type: array
+      items:
+        type: string
+      example: [vegetarian]
+    householdSize:
+      type: integer
+      minimum: 1
+      maximum: 20
+      example: 4
+    notificationsEnabled:
+      type: boolean
+      example: true
+    expiryAlertDays:
+      type: integer
+      minimum: 1
+      maximum: 30
+      example: 5
+
+RewardCard:
+  type: object
+  properties:
+    cardId:
+      type: string
+      format: uuid
+      description: Unique card identifier
+      example: 770e8400-e29b-41d4-a716-446655440002
+    storeName:
+      type: string
+      description: Store name for the reward card
+      example: Tesco Clubcard
+    cardNumber:
+      type: string
+      description: Card/membership number
+      example: '634004012345678901'
+    barcodeData:
+      type: string
+      description: Barcode data for in-store scanning
+      example: '634004012345678901'
+    createdAt:
+      type: string
+      format: date-time
+      example: '2025-03-10T09:00:00.000Z'
+  required:
+    - cardId
+    - storeName
+    - cardNumber
+
+CreateRewardCardRequest:
+  type: object
+  properties:
+    storeName:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: Store name
+      example: Tesco Clubcard
+    cardNumber:
+      type: string
+      minLength: 1
+      maxLength: 50
+      description: Card number
+      example: '634004012345678901'
+    barcodeData:
+      type: string
+      maxLength: 200
+      description: Barcode data (optional)
+      example: '634004012345678901'
+  required:
+    - storeName
+    - cardNumber
+
+Family:
+  type: object
+  properties:
+    familyId:
+      type: string
+      format: uuid
+      description: Unique family group identifier
+      example: 660e8400-e29b-41d4-a716-446655440001
+    name:
+      type: string
+      description: Family group name
+      example: The Smiths
+    members:
+      type: array
+      items:
+        $ref: '#/FamilyMember'
+      description: Family members
+    createdBy:
+      type: string
+      format: uuid
+      description: User ID of family creator
+      example: 550e8400-e29b-41d4-a716-446655440000
+    createdAt:
+      type: string
+      format: date-time
+      example: '2025-01-15T10:30:00.000Z'
+  required:
+    - familyId
+    - name
+    - members
+    - createdBy
+    - createdAt
+
+FamilyMember:
+  type: object
+  properties:
+    userId:
+      type: string
+      format: uuid
+      description: Member user ID
+      example: 550e8400-e29b-41d4-a716-446655440000
+    firstName:
+      type: string
+      description: Member first name
+      example: John
+    lastName:
+      type: string
+      description: Member last name
+      example: Smith
+    role:
+      type: string
+      enum:
+        - admin
+        - member
+      description: Member role in the family
+      example: admin
+    joinedAt:
+      type: string
+      format: date-time
+      description: When the member joined the family
+      example: '2025-01-15T10:30:00.000Z'
+  required:
+    - userId
+    - firstName
+    - lastName
+    - role
+    - joinedAt
+
+CreateFamilyRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: Family group name
+      example: The Smiths
+  required:
+    - name
+
+InviteFamilyMemberRequest:
+  type: object
+  properties:
+    email:
+      type: string
+      format: email
+      description: Email address of the person to invite
+      example: jane.smith@example.co.uk
+  required:
+    - email

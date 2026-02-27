@@ -1,0 +1,26 @@
+health:
+  get:
+    tags:
+      - Health
+    summary: Health check
+    description: Returns API health status. No authentication required.
+    operationId: getHealth
+    security: []
+    responses:
+      '200':
+        description: API is healthy
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: healthy
+                version:
+                  type: string
+                  example: 1.0.0
+                timestamp:
+                  type: string
+                  format: date-time
+                  example: '2025-06-24T12:00:00.000Z'

@@ -1,0 +1,408 @@
+AIPhotoUpload:
+  type: object
+  description: Base request for all photo-based AI features. Image is sent as multipart/form-data or base64.
+  properties:
+    image:
+      type: string
+      format: binary
+      description: Image file (JPEG, PNG, WebP, GIF). Max 10MB.
+    imageBase64:
+      type: string
+      description: Alternative to file upload - base64 encoded image data
+    mimeType:
+      type: string
+      enum:
+        - image/jpeg
+        - image/png
+        - image/webp
+        - image/gif
+      description: Image MIME type (required if using base64)
+      example: image/jpeg
+
+AIRecipeResult:
+  type: object
+  description: Result from photo-to-recipe or AI recipe generation
+  properties:
+    confidence:
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1
+      description: AI confidence score (0-1)
+      example: 0.92
+    dishName:
+      type: string
+      description: Identified dish name
+      example: Chicken Tikka Masala
+    recipe:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Chicken Tikka Masala
+        description:
+          type: string
+          example: A rich and creamy British-Indian curry with tender marinated chicken pieces.
+        ingredients:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: Chicken breast
+              quantity:
+                type: number
+                example: 500
+              unit:
+                type: string
+                example: g
+              notes:
+                type: string
+                example: cut into chunks
+              isOptional:
+                type: boolean
+                example: false
+        directions:
+          type: array
+          items:
+            type: object
+            properties:
+              stepNumber:
+                type: integer
+                example: 1
+              instruction:
+                type: string
+                example: Mix yoghurt, garam masala, turmeric, and chilli powder. Add chicken and marinate for at least 1 hour.
+              timerMinutes:
+                type: integer
+                example: 60
+        prepTime:
+          type: integer
+          example: 20
+        cookTime:
+          type: integer
+          example: 35
+        servings:
+          type: integer
+          example: 4
+        nutrition:
+          $ref: './recipe.yaml#/NutritionInfo'
+        tags:
+          type: array
+          items:
+            type: string
+          example: [indian, curry, chicken, british-indian]
+        cuisine:
+          type: string
+          example: Indian
+        difficulty:
+          type: string
+          example: medium
+  required:
+    - confidence
+    - dishName
+    - recipe
+
+AIShoppingListResult:
+  type: object
+  description: Result from photo-to-shopping-list AI analysis
+  properties:
+    confidence:
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1
+      description: AI confidence score
+      example: 0.88
+    itemsIdentified:
+      type: integer
+      description: Number of items identified in the image
+      example: 8
+    items:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: Identified item name
+            example: Semi-Skimmed Milk
+          quantity:
+            type: number
+            description: Suggested quantity
+            example: 2
+          unit:
+            type: string
+            description: Suggested unit
+            example: l
+          category:
+            type: string
+            description: AI-assigned category
+            example: Dairy & Eggs
+          confidence:
+            type: number
+            format: float
+            description: Confidence for this specific item
+            example: 0.95
+      description: Identified shopping list items
+    suggestions:
+      type: array
+      items:
+        type: string
+      description: AI suggestions (e.g. "You might also need...")
+      example:
+        [
+          'You seem to be running low on bread - consider adding it to your list',
+        ]
+  required:
+    - confidence
+    - itemsIdentified
+    - items
+
+AINutritionResult:
+  type: object
+  description: Result from photo-to-nutrition AI analysis
+  properties:
+    confidence:
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1
+      description: AI confidence score
+      example: 0.85
+    foodItem:
+      type: string
+      description: Identified food item
+      example: Avocado Toast with Poached Egg
+    servingSize:
+      type: string
+      description: Estimated serving size
+      example: 1 slice (approx 250g)
+    nutrition:
+      $ref: './recipe.yaml#/NutritionInfo'
+    breakdown:
+      type: array
+      items:
+        type: object
+        properties:
+          component:
+            type: string
+            example: Sourdough bread
+          calories:
+            type: number
+            example: 180
+          protein:
+            type: number
+            example: 6
+          carbohydrates:
+            type: number
+            example: 34
+          fat:
+            type: number
+            example: 2
+      description: Nutrition breakdown by component (if identifiable)
+    healthNotes:
+      type: array
+      items:
+        type: string
+      description: Health-related notes
+      example:
+        [
+          'Good source of healthy fats from avocado',
+          'High in protein from the egg',
+        ]
+  required:
+    - confidence
+    - foodItem
+    - servingSize
+    - nutrition
+
+AIReceiptResult:
+  type: object
+  description: Result from receipt scanning
+  properties:
+    confidence:
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1
+      description: OCR confidence score
+      example: 0.91
+    storeName:
+      type: string
+      description: Identified store name
+      example: Tesco
+    storeCode:
+      $ref: './common.yaml#/UKSupermarket'
+    date:
+      type: string
+      format: date
+      description: Receipt date
+      example: '2025-06-24'
+    items:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: Item name from receipt
+            example: TESCO SS MILK 2L
+          cleanedName:
+            type: string
+            description: AI-cleaned item name
+            example: Semi-Skimmed Milk 2L
+          quantity:
+            type: integer
+            description: Quantity purchased
+            example: 1
+          price:
+            type: integer
+            description: Price in pence
+            example: 175
+          priceFormatted:
+            type: string
+            example: £1.75
+          category:
+            type: string
+            description: AI-assigned category
+            example: Dairy & Eggs
+          barcode:
+            type: string
+            description: Barcode if detected
+      description: Items extracted from receipt
+    subtotal:
+      type: integer
+      description: Subtotal in pence
+      example: 4520
+    total:
+      type: integer
+      description: Total in pence
+      example: 4520
+    totalFormatted:
+      type: string
+      example: £45.20
+    paymentMethod:
+      type: string
+      description: Payment method if detected
+      example: Contactless
+    savings:
+      type: integer
+      description: Total savings/discounts in pence
+      example: 350
+  required:
+    - confidence
+    - items
+    - total
+    - totalFormatted
+
+AIGenerateRecipeRequest:
+  type: object
+  description: Request to generate a recipe from ingredients or a name
+  properties:
+    recipeName:
+      type: string
+      maxLength: 200
+      description: Recipe name to generate (e.g. "Chicken Tikka Masala")
+      example: Chicken Tikka Masala
+    ingredients:
+      type: array
+      items:
+        type: string
+      description: List of available ingredients to use
+      example:
+        [chicken breast, yoghurt, garam masala, tinned tomatoes, cream, rice]
+    servings:
+      type: integer
+      minimum: 1
+      maximum: 20
+      description: Number of servings
+      default: 4
+      example: 4
+    difficulty:
+      $ref: './common.yaml#/Difficulty'
+    maxPrepTime:
+      type: integer
+      minimum: 0
+      description: Maximum prep time in minutes
+      example: 30
+    maxCookTime:
+      type: integer
+      minimum: 0
+      description: Maximum cook time in minutes
+      example: 60
+    dietaryRequirements:
+      type: array
+      items:
+        type: string
+      description: Dietary requirements to respect
+      example: [gluten-free]
+    cuisine:
+      type: string
+      maxLength: 100
+      description: Preferred cuisine
+      example: Indian
+
+AICategoriseRequest:
+  type: object
+  description: Request to categorise a grocery item
+  properties:
+    itemName:
+      type: string
+      minLength: 1
+      maxLength: 200
+      description: Item name to categorise
+      example: Cathedral City Mature Cheddar 350g
+    context:
+      type: string
+      enum:
+        - shopping_list
+        - inventory
+      description: Context for categorisation (affects location suggestion)
+      default: shopping_list
+      example: inventory
+  required:
+    - itemName
+
+AICategoriseResult:
+  type: object
+  description: AI categorisation result
+  properties:
+    itemName:
+      type: string
+      description: Original item name
+      example: Cathedral City Mature Cheddar 350g
+    category:
+      type: string
+      description: Suggested category
+      example: Dairy & Eggs
+    subcategory:
+      type: string
+      description: Suggested subcategory
+      example: Cheese
+    aisle:
+      type: string
+      description: Suggested store aisle
+      example: Aisle 4 - Dairy
+    inventoryLocation:
+      type: string
+      description: Suggested home storage location
+      example: FRIDGE
+    confidence:
+      type: number
+      format: float
+      minimum: 0
+      maximum: 1
+      description: AI confidence score
+      example: 0.96
+    tags:
+      type: array
+      items:
+        type: string
+      description: Suggested tags
+      example: [dairy, cheese, cheddar]
+  required:
+    - itemName
+    - category
+    - confidence

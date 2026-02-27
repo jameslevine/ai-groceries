@@ -1,0 +1,579 @@
+Recipe:
+  type: object
+  properties:
+    recipeId:
+      type: string
+      format: uuid
+      description: Unique recipe identifier
+      example: ee0e8400-e29b-41d4-a716-446655440009
+    userId:
+      type: string
+      format: uuid
+      description: Owner user ID
+      example: 550e8400-e29b-41d4-a716-446655440000
+    familyId:
+      type: string
+      format: uuid
+      description: Family group (if shared with family)
+      example: 660e8400-e29b-41d4-a716-446655440001
+    name:
+      type: string
+      description: Recipe name
+      example: Classic Shepherd's Pie
+    description:
+      type: string
+      description: Recipe description
+      example: A hearty British classic with lamb mince and creamy mashed potato topping.
+    ingredients:
+      type: array
+      items:
+        $ref: '#/RecipeIngredient'
+      description: List of ingredients
+    directions:
+      type: array
+      items:
+        $ref: '#/RecipeDirection'
+      description: Step-by-step cooking directions
+    prepTime:
+      type: integer
+      minimum: 0
+      description: Preparation time in minutes
+      example: 20
+    cookTime:
+      type: integer
+      minimum: 0
+      description: Cooking time in minutes
+      example: 45
+    totalTime:
+      type: integer
+      minimum: 0
+      description: Total time in minutes (prepTime + cookTime)
+      example: 65
+    servings:
+      type: integer
+      minimum: 1
+      description: Number of servings
+      example: 4
+    nutrition:
+      $ref: '#/NutritionInfo'
+    rating:
+      type: number
+      format: float
+      minimum: 0
+      maximum: 5
+      description: Average rating (0-5)
+      example: 4.3
+    ratingCount:
+      type: integer
+      minimum: 0
+      description: Number of ratings
+      example: 12
+    imageUrl:
+      type: string
+      format: uri
+      description: Recipe image URL
+      example: https://images.aigroceries.co.uk/recipes/shepherds-pie.jpg
+    sourceUrl:
+      type: string
+      format: uri
+      description: Original recipe URL (if imported)
+      example: https://www.bbcgoodfood.com/recipes/shepherds-pie
+    tags:
+      type: array
+      items:
+        type: string
+      description: Recipe tags
+      example: [british, comfort food, lamb, winter]
+    cuisine:
+      type: string
+      description: Cuisine type
+      example: British
+    difficulty:
+      $ref: './common.yaml#/Difficulty'
+    isPublic:
+      type: boolean
+      description: Whether the recipe is publicly visible
+      default: false
+      example: false
+    createdAt:
+      type: string
+      format: date-time
+      example: '2025-04-10T16:00:00.000Z'
+    updatedAt:
+      type: string
+      format: date-time
+      example: '2025-04-10T16:00:00.000Z'
+  required:
+    - recipeId
+    - userId
+    - name
+    - description
+    - ingredients
+    - directions
+    - prepTime
+    - cookTime
+    - totalTime
+    - servings
+    - rating
+    - ratingCount
+    - difficulty
+    - isPublic
+    - createdAt
+    - updatedAt
+
+RecipeSummary:
+  type: object
+  description: Lightweight recipe for list views
+  properties:
+    recipeId:
+      type: string
+      format: uuid
+      example: ee0e8400-e29b-41d4-a716-446655440009
+    name:
+      type: string
+      example: Classic Shepherd's Pie
+    description:
+      type: string
+      example: A hearty British classic with lamb mince and creamy mashed potato topping.
+    imageUrl:
+      type: string
+      format: uri
+      example: https://images.aigroceries.co.uk/recipes/shepherds-pie.jpg
+    prepTime:
+      type: integer
+      example: 20
+    cookTime:
+      type: integer
+      example: 45
+    totalTime:
+      type: integer
+      example: 65
+    servings:
+      type: integer
+      example: 4
+    rating:
+      type: number
+      format: float
+      example: 4.3
+    ratingCount:
+      type: integer
+      example: 12
+    difficulty:
+      $ref: './common.yaml#/Difficulty'
+    cuisine:
+      type: string
+      example: British
+    tags:
+      type: array
+      items:
+        type: string
+      example: [british, comfort food]
+  required:
+    - recipeId
+    - name
+    - totalTime
+    - servings
+    - rating
+    - difficulty
+
+RecipeIngredient:
+  type: object
+  properties:
+    ingredientId:
+      type: string
+      format: uuid
+      description: Unique ingredient identifier
+      example: ff0e8400-e29b-41d4-a716-446655440010
+    name:
+      type: string
+      description: Ingredient name
+      example: Lamb mince
+    quantity:
+      type: number
+      minimum: 0
+      description: Quantity needed
+      example: 500
+    unit:
+      type: string
+      description: Unit of measurement
+      example: g
+    notes:
+      type: string
+      description: Additional notes (e.g. "finely chopped")
+      example: lean
+    isOptional:
+      type: boolean
+      description: Whether this ingredient is optional
+      default: false
+      example: false
+    inventoryItemId:
+      type: string
+      format: uuid
+      description: Linked inventory item ID (if matched)
+  required:
+    - ingredientId
+    - name
+    - quantity
+    - unit
+    - isOptional
+
+RecipeDirection:
+  type: object
+  properties:
+    stepNumber:
+      type: integer
+      minimum: 1
+      description: Step number
+      example: 1
+    instruction:
+      type: string
+      description: Step instruction text
+      example: Preheat the oven to 200°C/180°C fan/gas 6. Heat the oil in a large pan over medium heat.
+    duration:
+      type: integer
+      minimum: 0
+      description: Estimated duration for this step in minutes
+      example: 5
+    ingredientRefs:
+      type: array
+      items:
+        type: string
+        format: uuid
+      description: Ingredient IDs referenced in this step (for colour-coding)
+      example: [ff0e8400-e29b-41d4-a716-446655440010]
+    timerMinutes:
+      type: integer
+      minimum: 0
+      description: Timer duration in minutes (if step requires timing)
+      example: 5
+  required:
+    - stepNumber
+    - instruction
+
+NutritionInfo:
+  type: object
+  description: Nutrition information per serving
+  properties:
+    calories:
+      type: number
+      minimum: 0
+      description: Calories (kcal)
+      example: 485
+    protein:
+      type: number
+      minimum: 0
+      description: Protein (g)
+      example: 28
+    carbohydrates:
+      type: number
+      minimum: 0
+      description: Carbohydrates (g)
+      example: 42
+    fat:
+      type: number
+      minimum: 0
+      description: Fat (g)
+      example: 22
+    fibre:
+      type: number
+      minimum: 0
+      description: Fibre (g)
+      example: 5
+    sugar:
+      type: number
+      minimum: 0
+      description: Sugar (g)
+      example: 8
+    sodium:
+      type: number
+      minimum: 0
+      description: Sodium (mg)
+      example: 620
+    servingSize:
+      type: string
+      description: Serving size description
+      example: 1 portion (350g)
+  required:
+    - calories
+    - protein
+    - carbohydrates
+    - fat
+
+CreateRecipeRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+      description: Recipe name
+      example: Classic Shepherd's Pie
+    description:
+      type: string
+      maxLength: 2000
+      description: Recipe description
+      example: A hearty British classic.
+    ingredients:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            minLength: 1
+            maxLength: 200
+            example: Lamb mince
+          quantity:
+            type: number
+            minimum: 0
+            example: 500
+          unit:
+            type: string
+            maxLength: 50
+            example: g
+          notes:
+            type: string
+            maxLength: 500
+            example: lean
+          isOptional:
+            type: boolean
+            default: false
+        required:
+          - name
+          - quantity
+          - unit
+      minItems: 1
+      description: Recipe ingredients
+    directions:
+      type: array
+      items:
+        type: object
+        properties:
+          stepNumber:
+            type: integer
+            minimum: 1
+            example: 1
+          instruction:
+            type: string
+            minLength: 1
+            maxLength: 2000
+            example: Preheat the oven to 200°C.
+          duration:
+            type: integer
+            minimum: 0
+          ingredientRefs:
+            type: array
+            items:
+              type: string
+          timerMinutes:
+            type: integer
+            minimum: 0
+        required:
+          - stepNumber
+          - instruction
+      minItems: 1
+      description: Cooking directions
+    prepTime:
+      type: integer
+      minimum: 0
+      description: Prep time in minutes
+      example: 20
+    cookTime:
+      type: integer
+      minimum: 0
+      description: Cook time in minutes
+      example: 45
+    servings:
+      type: integer
+      minimum: 1
+      description: Number of servings
+      example: 4
+    nutrition:
+      $ref: '#/NutritionInfo'
+    imageUrl:
+      type: string
+      format: uri
+    tags:
+      type: array
+      items:
+        type: string
+        maxLength: 50
+      example: [british, comfort food]
+    cuisine:
+      type: string
+      maxLength: 100
+      example: British
+    difficulty:
+      $ref: './common.yaml#/Difficulty'
+    isPublic:
+      type: boolean
+      default: false
+  required:
+    - name
+    - ingredients
+    - directions
+    - prepTime
+    - cookTime
+    - servings
+
+UpdateRecipeRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      maxLength: 2000
+    ingredients:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+          quantity:
+            type: number
+          unit:
+            type: string
+          notes:
+            type: string
+          isOptional:
+            type: boolean
+        required:
+          - name
+          - quantity
+          - unit
+      minItems: 1
+    directions:
+      type: array
+      items:
+        type: object
+        properties:
+          stepNumber:
+            type: integer
+          instruction:
+            type: string
+          duration:
+            type: integer
+          ingredientRefs:
+            type: array
+            items:
+              type: string
+          timerMinutes:
+            type: integer
+        required:
+          - stepNumber
+          - instruction
+      minItems: 1
+    prepTime:
+      type: integer
+      minimum: 0
+    cookTime:
+      type: integer
+      minimum: 0
+    servings:
+      type: integer
+      minimum: 1
+    nutrition:
+      $ref: '#/NutritionInfo'
+    imageUrl:
+      type: string
+      format: uri
+    tags:
+      type: array
+      items:
+        type: string
+    cuisine:
+      type: string
+    difficulty:
+      $ref: './common.yaml#/Difficulty'
+    isPublic:
+      type: boolean
+
+RateRecipeRequest:
+  type: object
+  properties:
+    rating:
+      type: integer
+      minimum: 1
+      maximum: 5
+      description: Rating from 1 to 5
+      example: 4
+  required:
+    - rating
+
+ImportRecipeUrlRequest:
+  type: object
+  properties:
+    url:
+      type: string
+      format: uri
+      description: URL of the recipe page to import
+      example: https://www.bbcgoodfood.com/recipes/shepherds-pie
+  required:
+    - url
+
+IngredientStockStatus:
+  type: object
+  description: Stock status for a recipe ingredient against inventory
+  properties:
+    ingredientId:
+      type: string
+      format: uuid
+      example: ff0e8400-e29b-41d4-a716-446655440010
+    ingredientName:
+      type: string
+      example: Lamb mince
+    requiredQuantity:
+      type: number
+      example: 500
+    requiredUnit:
+      type: string
+      example: g
+    inventoryItemId:
+      type: string
+      format: uuid
+      description: Matched inventory item (if found)
+    inventoryQuantity:
+      type: number
+      description: Available quantity in inventory
+      example: 750
+    inventoryUnit:
+      type: string
+      example: g
+    inStock:
+      type: boolean
+      description: Whether sufficient quantity is available
+      example: true
+    isOptional:
+      type: boolean
+      example: false
+  required:
+    - ingredientId
+    - ingredientName
+    - requiredQuantity
+    - requiredUnit
+    - inStock
+    - isOptional
+
+AddToListRequest:
+  type: object
+  properties:
+    listId:
+      type: string
+      format: uuid
+      description: Shopping list to add ingredients to. If omitted, creates a new list.
+      example: 880e8400-e29b-41d4-a716-446655440003
+    missingOnly:
+      type: boolean
+      description: If true, only add ingredients not in inventory
+      default: true
+      example: true
+    servings:
+      type: integer
+      minimum: 1
+      description: Scale ingredients for this many servings
+      default: 4
+      example: 4

@@ -1,0 +1,305 @@
+inventory:
+  get:
+    tags:
+      - Inventory
+    summary: Get inventory items
+    description: Returns inventory items with optional filtering by location, category, or stock status.
+    operationId: getInventoryItems
+    parameters:
+      - name: location
+        in: query
+        schema:
+          type: string
+        description: Filter by storage location
+      - name: category
+        in: query
+        schema:
+          type: string
+        description: Filter by category
+      - name: status
+        in: query
+        schema:
+          $ref: '../schemas/common.yaml#/StockStatus'
+        description: Filter by stock status
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: lastKey
+        in: query
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Inventory items
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '../schemas/inventory.yaml#/InventoryItem'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  post:
+    tags:
+      - Inventory
+    summary: Add an inventory item
+    description: Adds a new item to the home inventory.
+    operationId: createInventoryItem
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/inventory.yaml#/CreateInventoryItemRequest'
+    responses:
+      '201':
+        description: Item added to inventory
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/inventory.yaml#/InventoryItem'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+inventory-itemId:
+  patch:
+    tags:
+      - Inventory
+    summary: Update an inventory item
+    description: Updates item properties (quantity, location, expiry date, etc.).
+    operationId: updateInventoryItem
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/inventory.yaml#/UpdateInventoryItemRequest'
+    responses:
+      '200':
+        description: Item updated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/inventory.yaml#/InventoryItem'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Item not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  delete:
+    tags:
+      - Inventory
+    summary: Delete an inventory item
+    description: Removes an item from inventory.
+    operationId: deleteInventoryItem
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: location
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Item location (required for DynamoDB key)
+    responses:
+      '204':
+        description: Item deleted
+      '404':
+        description: Item not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+inventory-locations:
+  get:
+    tags:
+      - Inventory
+    summary: Get inventory locations
+    description: Returns all inventory locations (18 built-in + custom) with item counts.
+    operationId: getInventoryLocations
+    responses:
+      '200':
+        description: Inventory locations
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '../schemas/inventory.yaml#/InventoryLocation'
+  post:
+    tags:
+      - Inventory
+    summary: Create a custom location
+    description: Creates a new custom inventory location.
+    operationId: createInventoryLocation
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/inventory.yaml#/CreateLocationRequest'
+    responses:
+      '201':
+        description: Location created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/inventory.yaml#/InventoryLocation'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+inventory-locations-locationId:
+  delete:
+    tags:
+      - Inventory
+    summary: Delete a custom location
+    description: Deletes a custom inventory location. Built-in locations cannot be deleted.
+    operationId: deleteInventoryLocation
+    parameters:
+      - name: locationId
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '204':
+        description: Location deleted
+      '400':
+        description: Cannot delete built-in location
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Location not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+inventory-low-stock:
+  get:
+    tags:
+      - Inventory
+    summary: Get low stock items
+    description: Returns items where quantity is at or below the low stock threshold.
+    operationId: getLowStockItems
+    responses:
+      '200':
+        description: Low stock items
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '../schemas/inventory.yaml#/InventoryItem'
+
+inventory-expired:
+  get:
+    tags:
+      - Inventory
+    summary: Get expired items
+    description: Returns items that have passed their expiry date.
+    operationId: getExpiredItems
+    responses:
+      '200':
+        description: Expired items
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '../schemas/inventory.yaml#/InventoryItem'
+
+inventory-expiring-soon:
+  get:
+    tags:
+      - Inventory
+    summary: Get items expiring soon
+    description: Returns items expiring within the user's alert threshold (default 3 days).
+    operationId: getExpiringSoonItems
+    parameters:
+      - name: days
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 30
+          default: 3
+        description: Number of days to look ahead
+    responses:
+      '200':
+        description: Items expiring soon
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '../schemas/inventory.yaml#/InventoryItem'
+
+inventory-summary:
+  get:
+    tags:
+      - Inventory
+    summary: Get inventory summary
+    description: Returns an overview of inventory status (counts by stock status and location).
+    operationId: getInventorySummary
+    responses:
+      '200':
+        description: Inventory summary
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/inventory.yaml#/InventorySummary'

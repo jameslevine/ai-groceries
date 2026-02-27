@@ -1,0 +1,433 @@
+ai-photo-to-recipe:
+  post:
+    tags:
+      - AI
+    summary: Photo to Recipe
+    description: |
+      Snap a photo of any dish and get its full recipe including step-by-step directions,
+      ingredients, and nutrition information. Uses Amazon Bedrock (Claude) for multi-modal analysis.
+    operationId: photoToRecipe
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              image:
+                type: string
+                format: binary
+                description: Photo of the dish (JPEG, PNG, WebP, GIF. Max 10MB)
+            required:
+              - image
+        application/json:
+          schema:
+            type: object
+            properties:
+              imageBase64:
+                type: string
+                description: Base64 encoded image
+              mimeType:
+                type: string
+                enum: [image/jpeg, image/png, image/webp, image/gif]
+            required:
+              - imageBase64
+              - mimeType
+    responses:
+      '200':
+        description: Recipe identified from photo
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ai.yaml#/AIRecipeResult'
+      '400':
+        description: Invalid image or unsupported format
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '422':
+        description: Could not identify a dish in the image
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '429':
+        description: AI rate limit exceeded
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+ai-photo-to-list:
+  post:
+    tags:
+      - AI
+    summary: Photo to Shopping List
+    description: |
+      Snap a photo of items you have at home and AI will generate a shopping list for you.
+      Can also import a handwritten paper shopping list by photographing it.
+    operationId: photoToList
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              image:
+                type: string
+                format: binary
+              addToListId:
+                type: string
+                format: uuid
+                description: Existing list to add items to (optional)
+            required:
+              - image
+        application/json:
+          schema:
+            type: object
+            properties:
+              imageBase64:
+                type: string
+              mimeType:
+                type: string
+                enum: [image/jpeg, image/png, image/webp, image/gif]
+              addToListId:
+                type: string
+                format: uuid
+            required:
+              - imageBase64
+              - mimeType
+    responses:
+      '200':
+        description: Shopping list items identified
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ai.yaml#/AIShoppingListResult'
+      '400':
+        description: Invalid image
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '429':
+        description: AI rate limit exceeded
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+ai-photo-to-nutrition:
+  post:
+    tags:
+      - AI
+    summary: Photo to Nutrition
+    description: |
+      Snap a photo of a dish or food item and get its exact nutrition values
+      including calories, protein, carbohydrates, fat, fibre, sugar, and sodium.
+    operationId: photoToNutrition
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              image:
+                type: string
+                format: binary
+            required:
+              - image
+        application/json:
+          schema:
+            type: object
+            properties:
+              imageBase64:
+                type: string
+              mimeType:
+                type: string
+                enum: [image/jpeg, image/png, image/webp, image/gif]
+            required:
+              - imageBase64
+              - mimeType
+    responses:
+      '200':
+        description: Nutrition information identified
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ai.yaml#/AINutritionResult'
+      '400':
+        description: Invalid image
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '422':
+        description: Could not identify food in the image
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '429':
+        description: AI rate limit exceeded
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+ai-receipt-scan:
+  post:
+    tags:
+      - AI
+    summary: Scan Receipt
+    description: |
+      Snap a photo of a receipt and import the items into your shopping list or inventory.
+      Uses Amazon Textract for OCR and Bedrock for item categorisation.
+      Receipt is saved to history for price tracking and easy returns.
+    operationId: scanReceipt
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              image:
+                type: string
+                format: binary
+              destination:
+                type: string
+                enum: [shopping_list, inventory, both]
+                default: shopping_list
+                description: Where to import the items
+              listId:
+                type: string
+                format: uuid
+                description: Shopping list to add items to (if destination includes shopping_list)
+            required:
+              - image
+        application/json:
+          schema:
+            type: object
+            properties:
+              imageBase64:
+                type: string
+              mimeType:
+                type: string
+                enum: [image/jpeg, image/png, image/webp, image/gif]
+              destination:
+                type: string
+                enum: [shopping_list, inventory, both]
+                default: shopping_list
+              listId:
+                type: string
+                format: uuid
+            required:
+              - imageBase64
+              - mimeType
+    responses:
+      '200':
+        description: Receipt scanned and items extracted
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ai.yaml#/AIReceiptResult'
+      '400':
+        description: Invalid image or could not read receipt
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '429':
+        description: AI rate limit exceeded
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+ai-generate-recipe:
+  post:
+    tags:
+      - AI
+    summary: Generate Recipe with AI
+    description: |
+      Enter ingredients or a recipe name and AI will generate a full detailed recipe
+      including step-by-step directions, ingredients with quantities, and nutrition information.
+    operationId: generateRecipe
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/ai.yaml#/AIGenerateRecipeRequest'
+    responses:
+      '200':
+        description: Recipe generated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ai.yaml#/AIRecipeResult'
+      '400':
+        description: Must provide recipeName or ingredients
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '429':
+        description: AI rate limit exceeded
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+ai-categorise:
+  post:
+    tags:
+      - AI
+    summary: Smart Categorise
+    description: |
+      AI instantly assigns a category, subcategory, store aisle, and inventory location
+      for a grocery item. Used for auto-categorisation when adding items.
+    operationId: categoriseItem
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/ai.yaml#/AICategoriseRequest'
+    responses:
+      '200':
+        description: Item categorised
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ai.yaml#/AICategoriseResult'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '429':
+        description: AI rate limit exceeded
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+ai-import-paper-list:
+  post:
+    tags:
+      - AI
+    summary: Import Paper Shopping List
+    description: |
+      Snap a photo of a handwritten shopping list on paper and AI will extract
+      the items and create a digital shopping list.
+    operationId: importPaperList
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              image:
+                type: string
+                format: binary
+              listName:
+                type: string
+                maxLength: 100
+                description: Name for the new list
+                example: Paper List Import
+            required:
+              - image
+        application/json:
+          schema:
+            type: object
+            properties:
+              imageBase64:
+                type: string
+              mimeType:
+                type: string
+                enum: [image/jpeg, image/png, image/webp, image/gif]
+              listName:
+                type: string
+                maxLength: 100
+            required:
+              - imageBase64
+              - mimeType
+    responses:
+      '200':
+        description: Paper list imported
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ai.yaml#/AIShoppingListResult'
+      '400':
+        description: Could not read the list
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '429':
+        description: AI rate limit exceeded
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+ai-import-recipe-photo:
+  post:
+    tags:
+      - AI
+    summary: Import Recipe from Photo
+    description: |
+      Snap a photo of a recipe from a recipe book and AI will extract and structure
+      the recipe with ingredients, directions, and nutrition.
+    operationId: importRecipePhoto
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              image:
+                type: string
+                format: binary
+            required:
+              - image
+        application/json:
+          schema:
+            type: object
+            properties:
+              imageBase64:
+                type: string
+              mimeType:
+                type: string
+                enum: [image/jpeg, image/png, image/webp, image/gif]
+            required:
+              - imageBase64
+              - mimeType
+    responses:
+      '200':
+        description: Recipe extracted from photo
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ai.yaml#/AIRecipeResult'
+      '400':
+        description: Could not read the recipe
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '429':
+        description: AI rate limit exceeded
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'

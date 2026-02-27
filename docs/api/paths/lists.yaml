@@ -1,0 +1,488 @@
+lists:
+  get:
+    tags:
+      - Shopping Lists
+    summary: Get all shopping lists
+    description: Returns all shopping lists for the user's family, with pagination.
+    operationId: getShoppingLists
+    parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: Number of lists to return
+      - name: lastKey
+        in: query
+        schema:
+          type: string
+        description: Pagination cursor from previous response
+      - name: favourite
+        in: query
+        schema:
+          type: boolean
+        description: Filter by favourite status
+    responses:
+      '200':
+        description: List of shopping lists
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '../schemas/shopping-list.yaml#/ShoppingListSummary'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  post:
+    tags:
+      - Shopping Lists
+    summary: Create a new shopping list
+    description: Creates a new shopping list with an optional set of initial items.
+    operationId: createShoppingList
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/shopping-list.yaml#/CreateShoppingListRequest'
+    responses:
+      '201':
+        description: Shopping list created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/shopping-list.yaml#/ShoppingList'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+lists-listId:
+  get:
+    tags:
+      - Shopping Lists
+    summary: Get a shopping list by ID
+    description: Returns a single shopping list with all items.
+    operationId: getShoppingListById
+    parameters:
+      - name: listId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Shopping list ID
+    responses:
+      '200':
+        description: Shopping list details
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/shopping-list.yaml#/ShoppingList'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: List not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  patch:
+    tags:
+      - Shopping Lists
+    summary: Update a shopping list
+    description: Updates list name or favourite status.
+    operationId: updateShoppingList
+    parameters:
+      - name: listId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/shopping-list.yaml#/UpdateShoppingListRequest'
+    responses:
+      '200':
+        description: List updated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/shopping-list.yaml#/ShoppingList'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: List not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  delete:
+    tags:
+      - Shopping Lists
+    summary: Delete a shopping list
+    description: Permanently deletes a shopping list and all its items.
+    operationId: deleteShoppingList
+    parameters:
+      - name: listId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: List deleted
+      '404':
+        description: List not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+lists-listId-items:
+  post:
+    tags:
+      - Shopping Lists
+    summary: Add an item to a shopping list
+    description: Adds a new item to the specified shopping list.
+    operationId: addShoppingListItem
+    parameters:
+      - name: listId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/shopping-list.yaml#/AddShoppingListItemRequest'
+    responses:
+      '201':
+        description: Item added
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/shopping-list.yaml#/ShoppingListItem'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: List not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+lists-listId-items-itemId:
+  patch:
+    tags:
+      - Shopping Lists
+    summary: Update a shopping list item
+    description: Updates an item's properties (name, quantity, checked status, etc.).
+    operationId: updateShoppingListItem
+    parameters:
+      - name: listId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/shopping-list.yaml#/UpdateShoppingListItemRequest'
+    responses:
+      '200':
+        description: Item updated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/shopping-list.yaml#/ShoppingListItem'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: List or item not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  delete:
+    tags:
+      - Shopping Lists
+    summary: Remove an item from a shopping list
+    description: Removes a single item from the list.
+    operationId: deleteShoppingListItem
+    parameters:
+      - name: listId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Item removed
+      '404':
+        description: List or item not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+lists-listId-share:
+  post:
+    tags:
+      - Shopping Lists
+    summary: Share a shopping list
+    description: Shares a shopping list with other users via app, email, or SMS.
+    operationId: shareShoppingList
+    parameters:
+      - name: listId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/shopping-list.yaml#/ShareListRequest'
+    responses:
+      '200':
+        description: List shared successfully
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/shopping-list.yaml#/ShoppingList'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: List not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+lists-listId-duplicate:
+  post:
+    tags:
+      - Shopping Lists
+    summary: Duplicate a shopping list
+    description: Creates a copy of an existing shopping list with all items (unchecked).
+    operationId: duplicateShoppingList
+    parameters:
+      - name: listId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Name for the duplicated list (defaults to "Copy of [original name]")
+                example: Weekly Shop (Copy)
+    responses:
+      '201':
+        description: List duplicated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/shopping-list.yaml#/ShoppingList'
+      '404':
+        description: List not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+lists-history:
+  get:
+    tags:
+      - Shopping Lists
+    summary: Get shopping history
+    description: Returns completed shopping lists (auto-saved when all items are checked).
+    operationId: getShoppingHistory
+    parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: startDate
+        in: query
+        schema:
+          type: string
+          format: date
+        description: Filter from this date
+      - name: endDate
+        in: query
+        schema:
+          type: string
+          format: date
+        description: Filter to this date
+      - name: store
+        in: query
+        schema:
+          type: string
+        description: Filter by store name
+    responses:
+      '200':
+        description: Shopping history
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '../schemas/shopping-list.yaml#/ShoppingListHistory'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+lists-templates:
+  get:
+    tags:
+      - Shopping Lists
+    summary: Get list templates
+    description: Returns saved shopping list templates.
+    operationId: getListTemplates
+    responses:
+      '200':
+        description: List templates
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '../schemas/shopping-list.yaml#/ListTemplate'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  post:
+    tags:
+      - Shopping Lists
+    summary: Save a list as template
+    description: Saves the current list items as a reusable template.
+    operationId: createListTemplate
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 100
+                description: Template name
+                example: Weekly Essentials
+              listId:
+                type: string
+                format: uuid
+                description: Source list to create template from
+            required:
+              - name
+              - listId
+    responses:
+      '201':
+        description: Template created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/shopping-list.yaml#/ListTemplate'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Source list not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'

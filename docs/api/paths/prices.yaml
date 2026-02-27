@@ -1,0 +1,216 @@
+prices-compare:
+  get:
+    tags:
+      - Prices
+    summary: Compare prices for a product
+    description: Returns price comparison across all UK supermarkets for a given product.
+    operationId: comparePrices
+    parameters:
+      - name: productId
+        in: query
+        schema:
+          type: string
+          format: uuid
+        description: Product ID to compare
+      - name: barcode
+        in: query
+        schema:
+          type: string
+        description: Product barcode (alternative to productId)
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Product name search (alternative to productId/barcode)
+      - name: stores
+        in: query
+        schema:
+          type: string
+        description: Comma-separated store codes to include (defaults to all)
+        example: TESCO,SAINSBURYS,ASDA
+    responses:
+      '200':
+        description: Price comparison
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/product.yaml#/PriceComparison'
+      '400':
+        description: Must provide productId, barcode, or search query
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Product not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+prices-history:
+  get:
+    tags:
+      - Prices
+    summary: Get price history for a product
+    description: Returns historical price data for a product at one or all stores.
+    operationId: getPriceHistory
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: store
+        in: query
+        schema:
+          $ref: '../schemas/common.yaml#/UKSupermarket'
+        description: Filter by specific store (defaults to all stores)
+      - name: days
+        in: query
+        schema:
+          type: integer
+          minimum: 7
+          maximum: 365
+          default: 90
+        description: Number of days of history to return
+    responses:
+      '200':
+        description: Price history
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '../schemas/product.yaml#/PriceHistory'
+      '404':
+        description: Product not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+prices-deals:
+  get:
+    tags:
+      - Prices
+    summary: Get current deals
+    description: Returns current offers and deals across UK supermarkets.
+    operationId: getDeals
+    parameters:
+      - name: store
+        in: query
+        schema:
+          $ref: '../schemas/common.yaml#/UKSupermarket'
+        description: Filter by store
+      - name: category
+        in: query
+        schema:
+          type: string
+        description: Filter by product category
+      - name: minSavingsPercent
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 100
+        description: Minimum savings percentage
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+          maximum: 100
+    responses:
+      '200':
+        description: Current deals
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '../schemas/product.yaml#/Deal'
+
+prices-basket:
+  post:
+    tags:
+      - Prices
+    summary: Compare basket prices across stores
+    description: |
+      Calculates the total cost of a basket of items at each UK supermarket.
+      Identifies the cheapest store and potential savings.
+    operationId: compareBasketPrices
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    productId:
+                      type: string
+                      format: uuid
+                    barcode:
+                      type: string
+                    name:
+                      type: string
+                      description: Product name (used for fuzzy matching if no productId/barcode)
+                    quantity:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                  description: At least one of productId, barcode, or name is required
+                minItems: 1
+                description: Items in the basket
+              listId:
+                type: string
+                format: uuid
+                description: Alternatively, use items from an existing shopping list
+            description: Provide either items array or listId
+    responses:
+      '200':
+        description: Basket price comparison
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/product.yaml#/BasketPriceComparison'
+      '400':
+        description: Must provide items or listId
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+prices-stores:
+  get:
+    tags:
+      - Prices
+    summary: Get supported stores
+    description: Returns all supported UK supermarkets with metadata (logo, colour, URLs, product counts).
+    operationId: getStores
+    responses:
+      '200':
+        description: Supported stores
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '../schemas/product.yaml#/StoreSummary'

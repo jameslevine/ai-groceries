@@ -1,0 +1,313 @@
+me:
+  get:
+    tags:
+      - Users
+    summary: Get current user profile
+    description: Returns the authenticated user's profile information.
+    operationId: getCurrentUser
+    responses:
+      '200':
+        description: User profile
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/user.yaml#/User'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  patch:
+    tags:
+      - Users
+    summary: Update current user profile
+    description: Updates the authenticated user's profile (first name, last name).
+    operationId: updateCurrentUser
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/user.yaml#/UpdateUserRequest'
+    responses:
+      '200':
+        description: Profile updated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/user.yaml#/User'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+me-preferences:
+  get:
+    tags:
+      - Users
+    summary: Get user preferences
+    description: Returns the user's preferences (currency, language, stores, dietary, etc.).
+    operationId: getUserPreferences
+    responses:
+      '200':
+        description: User preferences
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/user.yaml#/UserPreferences'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  patch:
+    tags:
+      - Users
+    summary: Update user preferences
+    description: Updates the user's preferences. Only provided fields are updated.
+    operationId: updateUserPreferences
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/user.yaml#/UpdatePreferencesRequest'
+    responses:
+      '200':
+        description: Preferences updated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/user.yaml#/UserPreferences'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+me-reward-cards:
+  get:
+    tags:
+      - Users
+    summary: List reward cards
+    description: Returns all stored reward/loyalty cards for the user.
+    operationId: getRewardCards
+    responses:
+      '200':
+        description: List of reward cards
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '../schemas/user.yaml#/RewardCard'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  post:
+    tags:
+      - Users
+    summary: Add a reward card
+    description: Stores a new reward/loyalty card (e.g. Tesco Clubcard, Nectar).
+    operationId: createRewardCard
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/user.yaml#/CreateRewardCardRequest'
+    responses:
+      '201':
+        description: Reward card created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/user.yaml#/RewardCard'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+me-reward-cards-cardId:
+  delete:
+    tags:
+      - Users
+    summary: Delete a reward card
+    description: Removes a stored reward card.
+    operationId: deleteRewardCard
+    parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Reward card ID
+    responses:
+      '204':
+        description: Reward card deleted
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Card not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+family:
+  get:
+    tags:
+      - Users
+    summary: Get family details
+    description: Returns the user's family group with all members.
+    operationId: getFamily
+    responses:
+      '200':
+        description: Family details
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/user.yaml#/Family'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: User is not part of a family
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  post:
+    tags:
+      - Users
+    summary: Create a family group
+    description: Creates a new family group. The creating user becomes the admin.
+    operationId: createFamily
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/user.yaml#/CreateFamilyRequest'
+    responses:
+      '201':
+        description: Family created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/user.yaml#/Family'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '409':
+        description: User already belongs to a family
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+family-invite:
+  post:
+    tags:
+      - Users
+    summary: Invite a family member
+    description: Sends an invitation email to join the family group. Only admins can invite.
+    operationId: inviteFamilyMember
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/user.yaml#/InviteFamilyMemberRequest'
+    responses:
+      '200':
+        description: Invitation sent
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/SuccessMessage'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '403':
+        description: Only family admins can invite members
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+family-members-memberId:
+  delete:
+    tags:
+      - Users
+    summary: Remove a family member
+    description: Removes a member from the family group. Only admins can remove members.
+    operationId: removeFamilyMember
+    parameters:
+      - name: memberId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: User ID of the member to remove
+    responses:
+      '204':
+        description: Member removed
+      '403':
+        description: Only family admins can remove members
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Member not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'

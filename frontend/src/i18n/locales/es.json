@@ -1,0 +1,53 @@
+{
+  "app": {
+    "name": "AI Groceries",
+    "tagline": "Planificación inteligente de compras para tu familia"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "lists": "Listas de Compras",
+    "inventory": "Inventario",
+    "recipes": "Recetas",
+    "mealPlanner": "Planificador de Comidas",
+    "prices": "Comparar Precios",
+    "ai": "Herramientas IA",
+    "settings": "Configuración",
+    "profile": "Perfil",
+    "logout": "Cerrar Sesión"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "register": "Crear Cuenta",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "resetPassword": "Restablecer Contraseña",
+    "verifyEmail": "Verificar Correo",
+    "verificationCode": "Código de Verificación",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "signUp": "Registrarse",
+    "signIn": "Iniciar Sesión"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "search": "Buscar",
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "success": "¡Éxito!",
+    "confirm": "¿Estás seguro?",
+    "yes": "Sí",
+    "no": "No",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "close": "Cerrar",
+    "noResults": "No se encontraron resultados"
+  }
+}

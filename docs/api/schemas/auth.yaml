@@ -1,0 +1,142 @@
+RegisterRequest:
+  type: object
+  properties:
+    email:
+      type: string
+      format: email
+      description: User email address
+      example: john.smith@example.co.uk
+    password:
+      type: string
+      format: password
+      minLength: 8
+      description: Password (min 8 chars, must include uppercase, lowercase, and number)
+      example: MySecure1
+    firstName:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: User first name
+      example: John
+    lastName:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: User last name
+      example: Smith
+  required:
+    - email
+    - password
+    - firstName
+    - lastName
+
+LoginRequest:
+  type: object
+  properties:
+    email:
+      type: string
+      format: email
+      description: User email address
+      example: john.smith@example.co.uk
+    password:
+      type: string
+      format: password
+      description: User password
+      example: MySecure1
+  required:
+    - email
+    - password
+
+VerifyEmailRequest:
+  type: object
+  properties:
+    email:
+      type: string
+      format: email
+      description: Email address to verify
+      example: john.smith@example.co.uk
+    code:
+      type: string
+      minLength: 6
+      maxLength: 6
+      description: 6-digit verification code sent to email
+      example: '123456'
+  required:
+    - email
+    - code
+
+ForgotPasswordRequest:
+  type: object
+  properties:
+    email:
+      type: string
+      format: email
+      description: Email address associated with the account
+      example: john.smith@example.co.uk
+  required:
+    - email
+
+ResetPasswordRequest:
+  type: object
+  properties:
+    email:
+      type: string
+      format: email
+      description: Email address associated with the account
+      example: john.smith@example.co.uk
+    code:
+      type: string
+      minLength: 6
+      maxLength: 6
+      description: Reset code sent to email
+      example: '654321'
+    newPassword:
+      type: string
+      format: password
+      minLength: 8
+      description: New password
+      example: NewSecure2
+  required:
+    - email
+    - code
+    - newPassword
+
+RefreshTokenRequest:
+  type: object
+  properties:
+    refreshToken:
+      type: string
+      description: Refresh token from previous login
+      example: eyJjdHkiOiJKV1QiLCJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiUlNBLU9BRVAifQ...
+  required:
+    - refreshToken
+
+AuthTokens:
+  type: object
+  properties:
+    accessToken:
+      type: string
+      description: JWT access token for API authentication
+      example: eyJraWQiOiJ4eHh4eCIsImFsZyI6IlJTMjU2In0...
+    refreshToken:
+      type: string
+      description: Refresh token for obtaining new access tokens
+      example: eyJjdHkiOiJKV1QiLCJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiUlNBLU9BRVAifQ...
+    idToken:
+      type: string
+      description: ID token containing user claims
+      example: eyJraWQiOiJ5eXl5eSIsImFsZyI6IlJTMjU2In0...
+    expiresIn:
+      type: integer
+      description: Access token expiry time in seconds
+      example: 3600
+    tokenType:
+      type: string
+      description: Token type
+      example: Bearer
+  required:
+    - accessToken
+    - refreshToken
+    - idToken
+    - expiresIn
+    - tokenType

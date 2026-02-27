@@ -1,0 +1,406 @@
+recipes:
+  get:
+    tags:
+      - Recipes
+    summary: Get user's recipes
+    description: Returns recipes owned by the authenticated user, with pagination.
+    operationId: getRecipes
+    parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: lastKey
+        in: query
+        schema:
+          type: string
+    responses:
+      '200':
+        description: User's recipes
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '../schemas/recipe.yaml#/RecipeSummary'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  post:
+    tags:
+      - Recipes
+    summary: Create a new recipe
+    description: Creates a new recipe in the user's collection.
+    operationId: createRecipe
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/recipe.yaml#/CreateRecipeRequest'
+    responses:
+      '201':
+        description: Recipe created
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/recipe.yaml#/Recipe'
+      '400':
+        description: Validation error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+recipes-search:
+  get:
+    tags:
+      - Recipes
+    summary: Search recipes
+    description: Searches recipes by name, ingredients, cuisine, difficulty, and more.
+    operationId: searchRecipes
+    parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+          maxLength: 200
+        description: Search query (name or description)
+      - name: ingredients
+        in: query
+        schema:
+          type: string
+        description: Comma-separated ingredient names to search for
+      - name: cuisine
+        in: query
+        schema:
+          type: string
+        description: Filter by cuisine type
+      - name: difficulty
+        in: query
+        schema:
+          $ref: '../schemas/common.yaml#/Difficulty'
+      - name: maxPrepTime
+        in: query
+        schema:
+          type: integer
+        description: Maximum prep time in minutes
+      - name: maxCookTime
+        in: query
+        schema:
+          type: integer
+        description: Maximum cook time in minutes
+      - name: tags
+        in: query
+        schema:
+          type: string
+        description: Comma-separated tags
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+    responses:
+      '200':
+        description: Search results
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '../schemas/recipe.yaml#/RecipeSummary'
+
+recipes-external:
+  get:
+    tags:
+      - Recipes
+    summary: Search external recipes
+    description: Searches 10M+ recipes from popular recipe websites (BBC Good Food, Jamie Oliver, etc.).
+    operationId: searchExternalRecipes
+    parameters:
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Search query
+      - name: cuisine
+        in: query
+        schema:
+          type: string
+      - name: diet
+        in: query
+        schema:
+          type: string
+        description: Dietary filter (vegetarian, vegan, gluten-free, etc.)
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+    responses:
+      '200':
+        description: External recipe results
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../schemas/common.yaml#/PaginatedResponse'
+                - type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '../schemas/recipe.yaml#/RecipeSummary'
+
+recipes-import-url:
+  post:
+    tags:
+      - Recipes
+    summary: Import recipe from URL
+    description: |
+      Scrapes a recipe from a URL and imports it. Supports JSON-LD structured data
+      and major UK recipe sites (BBC Good Food, Jamie Oliver, Great British Chefs, etc.).
+    operationId: importRecipeFromUrl
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/recipe.yaml#/ImportRecipeUrlRequest'
+    responses:
+      '201':
+        description: Recipe imported
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/recipe.yaml#/Recipe'
+      '400':
+        description: Could not parse recipe from URL
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+recipes-recipeId:
+  get:
+    tags:
+      - Recipes
+    summary: Get recipe by ID
+    description: Returns full recipe details including ingredients, directions, and nutrition.
+    operationId: getRecipeById
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Recipe details
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/recipe.yaml#/Recipe'
+      '404':
+        description: Recipe not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  patch:
+    tags:
+      - Recipes
+    summary: Update a recipe
+    description: Updates recipe properties. Only the recipe owner can update.
+    operationId: updateRecipe
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/recipe.yaml#/UpdateRecipeRequest'
+    responses:
+      '200':
+        description: Recipe updated
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/recipe.yaml#/Recipe'
+      '403':
+        description: Not authorised to edit this recipe
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Recipe not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+  delete:
+    tags:
+      - Recipes
+    summary: Delete a recipe
+    description: Permanently deletes a recipe. Only the recipe owner can delete.
+    operationId: deleteRecipe
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Recipe deleted
+      '403':
+        description: Not authorised to delete this recipe
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Recipe not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+recipes-recipeId-rate:
+  post:
+    tags:
+      - Recipes
+    summary: Rate a recipe
+    description: Submits a rating (1-5) for a recipe. Updates the average rating.
+    operationId: rateRecipe
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/recipe.yaml#/RateRecipeRequest'
+    responses:
+      '200':
+        description: Rating submitted
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/recipe.yaml#/Recipe'
+      '404':
+        description: Recipe not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+recipes-recipeId-ingredients-stock:
+  get:
+    tags:
+      - Recipes
+    summary: Check ingredient stock status
+    description: Checks each recipe ingredient against the user's inventory and returns stock status.
+    operationId: getRecipeIngredientStock
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Ingredient stock status
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipeId:
+                  type: string
+                  format: uuid
+                recipeName:
+                  type: string
+                ingredients:
+                  type: array
+                  items:
+                    $ref: '../schemas/recipe.yaml#/IngredientStockStatus'
+                allInStock:
+                  type: boolean
+                  description: Whether all required ingredients are in stock
+                inStockCount:
+                  type: integer
+                missingCount:
+                  type: integer
+      '404':
+        description: Recipe not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'
+
+recipes-recipeId-add-to-list:
+  post:
+    tags:
+      - Recipes
+    summary: Add recipe ingredients to shopping list
+    description: Adds recipe ingredients to a shopping list. Can optionally only add missing ingredients.
+    operationId: addRecipeIngredientsToList
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/recipe.yaml#/AddToListRequest'
+    responses:
+      '200':
+        description: Ingredients added to list
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/shopping-list.yaml#/ShoppingList'
+      '404':
+        description: Recipe or list not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/ErrorResponse'

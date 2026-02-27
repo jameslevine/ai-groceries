@@ -1,0 +1,270 @@
+InventoryItem:
+  type: object
+  properties:
+    itemId:
+      type: string
+      format: uuid
+      description: Unique inventory item identifier
+      example: dd0e8400-e29b-41d4-a716-446655440008
+    familyId:
+      type: string
+      format: uuid
+      description: Family group that owns this item
+      example: 660e8400-e29b-41d4-a716-446655440001
+    name:
+      type: string
+      description: Item name
+      example: Cheddar Cheese
+    quantity:
+      type: number
+      minimum: 0
+      description: Current quantity
+      example: 1
+    unit:
+      type: string
+      description: Unit of measurement
+      example: each
+    location:
+      type: string
+      description: Storage location (built-in enum or custom string)
+      example: FRIDGE
+    category:
+      type: string
+      description: Item category
+      example: Dairy & Eggs
+    expiryDate:
+      type: string
+      format: date
+      description: Expiry date (ISO 8601 date)
+      example: '2025-07-15'
+    imageUrl:
+      type: string
+      format: uri
+      description: Item image URL
+      example: https://images.aigroceries.co.uk/items/cheddar-cheese.jpg
+    barcode:
+      type: string
+      description: Product barcode (EAN/UPC)
+      example: '5000128000123'
+    lowStockThreshold:
+      type: integer
+      minimum: 0
+      description: Quantity at which item is considered low stock
+      default: 1
+      example: 1
+    notes:
+      type: string
+      description: Additional notes
+      example: Cathedral City mature
+    stockStatus:
+      $ref: './common.yaml#/StockStatus'
+    createdAt:
+      type: string
+      format: date-time
+      example: '2025-06-10T14:00:00.000Z'
+    updatedAt:
+      type: string
+      format: date-time
+      example: '2025-06-20T09:15:00.000Z'
+  required:
+    - itemId
+    - familyId
+    - name
+    - quantity
+    - unit
+    - location
+    - category
+    - lowStockThreshold
+    - createdAt
+    - updatedAt
+
+CreateInventoryItemRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+      description: Item name
+      example: Cheddar Cheese
+    quantity:
+      type: number
+      minimum: 0
+      description: Initial quantity
+      example: 2
+    unit:
+      type: string
+      maxLength: 50
+      default: each
+      description: Unit of measurement
+      example: each
+    location:
+      type: string
+      maxLength: 100
+      description: Storage location
+      example: FRIDGE
+    category:
+      type: string
+      maxLength: 100
+      description: Item category
+      example: Dairy & Eggs
+    expiryDate:
+      type: string
+      format: date
+      description: Expiry date
+      example: '2025-07-15'
+    imageUrl:
+      type: string
+      format: uri
+      description: Item image URL
+    barcode:
+      type: string
+      maxLength: 50
+      description: Product barcode
+      example: '5000128000123'
+    lowStockThreshold:
+      type: integer
+      minimum: 0
+      default: 1
+      description: Low stock threshold
+      example: 1
+    notes:
+      type: string
+      maxLength: 500
+      description: Notes
+      example: Cathedral City mature
+  required:
+    - name
+    - quantity
+    - location
+
+UpdateInventoryItemRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    quantity:
+      type: number
+      minimum: 0
+    unit:
+      type: string
+      maxLength: 50
+    location:
+      type: string
+      maxLength: 100
+    category:
+      type: string
+      maxLength: 100
+    expiryDate:
+      type: string
+      format: date
+      nullable: true
+      description: Set to null to remove expiry date
+    imageUrl:
+      type: string
+      format: uri
+    barcode:
+      type: string
+      maxLength: 50
+    lowStockThreshold:
+      type: integer
+      minimum: 0
+    notes:
+      type: string
+      maxLength: 500
+
+InventoryLocation:
+  type: object
+  properties:
+    locationId:
+      type: string
+      description: Location identifier (enum value or custom UUID)
+      example: FRIDGE
+    name:
+      type: string
+      description: Display name
+      example: Fridge
+    icon:
+      type: string
+      description: Icon identifier
+      example: kitchen
+    isBuiltIn:
+      type: boolean
+      description: Whether this is a built-in location
+      example: true
+    itemCount:
+      type: integer
+      description: Number of items in this location
+      example: 12
+  required:
+    - locationId
+    - name
+    - isBuiltIn
+    - itemCount
+
+CreateLocationRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: Custom location name
+      example: Garden Shed
+    icon:
+      type: string
+      maxLength: 50
+      description: Icon identifier
+      example: warehouse
+  required:
+    - name
+
+InventorySummary:
+  type: object
+  properties:
+    totalItems:
+      type: integer
+      description: Total inventory items
+      example: 87
+    inStockCount:
+      type: integer
+      description: Items in stock
+      example: 62
+    lowStockCount:
+      type: integer
+      description: Items with low stock
+      example: 15
+    outOfStockCount:
+      type: integer
+      description: Items out of stock
+      example: 5
+    expiredCount:
+      type: integer
+      description: Expired items
+      example: 3
+    expiringSoonCount:
+      type: integer
+      description: Items expiring within alert threshold
+      example: 8
+    locationBreakdown:
+      type: array
+      items:
+        type: object
+        properties:
+          location:
+            type: string
+            example: FRIDGE
+          itemCount:
+            type: integer
+            example: 24
+      description: Item count per location
+  required:
+    - totalItems
+    - inStockCount
+    - lowStockCount
+    - outOfStockCount
+    - expiredCount
+    - expiringSoonCount
+    - locationBreakdown

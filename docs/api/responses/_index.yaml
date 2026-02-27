@@ -1,0 +1,120 @@
+# ==================== Common Responses ====================
+
+OK:
+  description: Request successful
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/SuccessMessage'
+
+Created:
+  description: Resource created successfully
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/SuccessMessage'
+
+NoContent:
+  description: Request successful, no content returned
+
+BadRequest:
+  description: |
+    Bad request. The request body or parameters failed validation.
+    Check the `details` field for specific validation errors.
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+      example:
+        message: Validation error
+        code: VALIDATION_ERROR
+        details: '"name" is required'
+
+Unauthorized:
+  description: |
+    Authentication required. The request did not include a valid JWT token
+    in the Authorization header, or the token has expired.
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+      example:
+        message: No token provided
+        code: UNAUTHORIZED
+
+Forbidden:
+  description: |
+    Access denied. The authenticated user does not have permission
+    to perform this action on the requested resource.
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+      example:
+        message: Not authorised to perform this action
+        code: FORBIDDEN
+
+NotFound:
+  description: |
+    Resource not found. The requested resource does not exist
+    or the user does not have access to it.
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+      example:
+        message: Resource not found
+        code: NOT_FOUND
+
+Conflict:
+  description: |
+    Conflict. The request conflicts with the current state of the resource
+    (e.g. email already registered, user already in a family).
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+      example:
+        message: Email already registered
+        code: CONFLICT
+
+UnprocessableEntity:
+  description: |
+    The request was well-formed but the server could not process it
+    (e.g. AI could not identify content in the image).
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+      example:
+        message: Could not identify a dish in the image
+        code: UNPROCESSABLE_ENTITY
+
+TooManyRequests:
+  description: |
+    Rate limit exceeded. The user has made too many requests in a given time period.
+    Retry after the time specified in the Retry-After header.
+  headers:
+    Retry-After:
+      schema:
+        type: integer
+      description: Number of seconds to wait before retrying
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+      example:
+        message: Rate limit exceeded. Please try again later.
+        code: RATE_LIMIT_EXCEEDED
+
+InternalServerError:
+  description: |
+    Internal server error. An unexpected error occurred on the server.
+    If this persists, please contact support.
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ErrorResponse'
+      example:
+        message: Internal server error
+        code: INTERNAL_ERROR

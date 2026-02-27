@@ -1,0 +1,209 @@
+openapi: 3.0.3
+info:
+  title: AI Groceries API
+  description: |
+    Smart grocery planning API for UK families. Provides endpoints for shopping lists,
+    inventory management, recipes, meal planning, price comparison across UK supermarkets,
+    and AI-powered features including photo recognition, recipe generation, and receipt scanning.
+  version: 1.0.0
+  contact:
+    name: AI Groceries Team
+    email: support@aigroceries.co.uk
+  license:
+    name: Proprietary
+    url: https://aigroceries.co.uk/terms
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Local development
+  - url: https://{apiId}.execute-api.eu-west-2.amazonaws.com/dev
+    description: Development environment
+    variables:
+      apiId:
+        default: xxxxxxxxxx
+  - url: https://{apiId}.execute-api.eu-west-2.amazonaws.com/prod
+    description: Production environment
+    variables:
+      apiId:
+        default: xxxxxxxxxx
+
+tags:
+  - name: Auth
+    description: Authentication and user registration
+  - name: Users
+    description: User profile and family management
+  - name: Shopping Lists
+    description: Shopping list CRUD and item management
+  - name: Inventory
+    description: Home inventory and pantry management
+  - name: Recipes
+    description: Recipe management, search, and import
+  - name: Meals
+    description: Meal planning and weekly calendar
+  - name: Products
+    description: Product search and barcode lookup
+  - name: Prices
+    description: Price comparison and history
+  - name: AI
+    description: AI-powered features (photo analysis, recipe generation, etc.)
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ==================== Health ====================
+  /health:
+    $ref: './paths/health.yaml#/health'
+
+  # ==================== Auth ====================
+  /auth/register:
+    $ref: './paths/auth.yaml#/register'
+  /auth/login:
+    $ref: './paths/auth.yaml#/login'
+  /auth/verify:
+    $ref: './paths/auth.yaml#/verify'
+  /auth/forgot-password:
+    $ref: './paths/auth.yaml#/forgot-password'
+  /auth/reset-password:
+    $ref: './paths/auth.yaml#/reset-password'
+  /auth/refresh-token:
+    $ref: './paths/auth.yaml#/refresh-token'
+
+  # ==================== Users ====================
+  /users/me:
+    $ref: './paths/users.yaml#/me'
+  /users/me/preferences:
+    $ref: './paths/users.yaml#/me-preferences'
+  /users/me/reward-cards:
+    $ref: './paths/users.yaml#/me-reward-cards'
+  /users/me/reward-cards/{cardId}:
+    $ref: './paths/users.yaml#/me-reward-cards-cardId'
+  /users/family:
+    $ref: './paths/users.yaml#/family'
+  /users/family/invite:
+    $ref: './paths/users.yaml#/family-invite'
+  /users/family/members/{memberId}:
+    $ref: './paths/users.yaml#/family-members-memberId'
+
+  # ==================== Shopping Lists ====================
+  /lists:
+    $ref: './paths/lists.yaml#/lists'
+  /lists/{listId}:
+    $ref: './paths/lists.yaml#/lists-listId'
+  /lists/{listId}/items:
+    $ref: './paths/lists.yaml#/lists-listId-items'
+  /lists/{listId}/items/{itemId}:
+    $ref: './paths/lists.yaml#/lists-listId-items-itemId'
+  /lists/{listId}/share:
+    $ref: './paths/lists.yaml#/lists-listId-share'
+  /lists/{listId}/duplicate:
+    $ref: './paths/lists.yaml#/lists-listId-duplicate'
+  /lists/history:
+    $ref: './paths/lists.yaml#/lists-history'
+  /lists/templates:
+    $ref: './paths/lists.yaml#/lists-templates'
+
+  # ==================== Inventory ====================
+  /inventory:
+    $ref: './paths/inventory.yaml#/inventory'
+  /inventory/{itemId}:
+    $ref: './paths/inventory.yaml#/inventory-itemId'
+  /inventory/locations:
+    $ref: './paths/inventory.yaml#/inventory-locations'
+  /inventory/locations/{locationId}:
+    $ref: './paths/inventory.yaml#/inventory-locations-locationId'
+  /inventory/low-stock:
+    $ref: './paths/inventory.yaml#/inventory-low-stock'
+  /inventory/expired:
+    $ref: './paths/inventory.yaml#/inventory-expired'
+  /inventory/expiring-soon:
+    $ref: './paths/inventory.yaml#/inventory-expiring-soon'
+  /inventory/summary:
+    $ref: './paths/inventory.yaml#/inventory-summary'
+
+  # ==================== Recipes ====================
+  /recipes:
+    $ref: './paths/recipes.yaml#/recipes'
+  /recipes/search:
+    $ref: './paths/recipes.yaml#/recipes-search'
+  /recipes/external:
+    $ref: './paths/recipes.yaml#/recipes-external'
+  /recipes/import-url:
+    $ref: './paths/recipes.yaml#/recipes-import-url'
+  /recipes/{recipeId}:
+    $ref: './paths/recipes.yaml#/recipes-recipeId'
+  /recipes/{recipeId}/rate:
+    $ref: './paths/recipes.yaml#/recipes-recipeId-rate'
+  /recipes/{recipeId}/ingredients/stock:
+    $ref: './paths/recipes.yaml#/recipes-recipeId-ingredients-stock'
+  /recipes/{recipeId}/add-to-list:
+    $ref: './paths/recipes.yaml#/recipes-recipeId-add-to-list'
+
+  # ==================== Meals ====================
+  /meals:
+    $ref: './paths/meals.yaml#/meals'
+  /meals/{mealId}:
+    $ref: './paths/meals.yaml#/meals-mealId'
+  /meals/copy-week:
+    $ref: './paths/meals.yaml#/meals-copy-week'
+  /meals/generate-list:
+    $ref: './paths/meals.yaml#/meals-generate-list'
+  /meals/nutrition-summary:
+    $ref: './paths/meals.yaml#/meals-nutrition-summary'
+
+  # ==================== Products ====================
+  /products/search:
+    $ref: './paths/products.yaml#/products-search'
+  /products/barcode/{barcode}:
+    $ref: './paths/products.yaml#/products-barcode'
+  /products/{productId}:
+    $ref: './paths/products.yaml#/products-productId'
+  /products/categories:
+    $ref: './paths/products.yaml#/products-categories'
+
+  # ==================== Prices ====================
+  /prices/compare:
+    $ref: './paths/prices.yaml#/prices-compare'
+  /prices/history/{productId}:
+    $ref: './paths/prices.yaml#/prices-history'
+  /prices/deals:
+    $ref: './paths/prices.yaml#/prices-deals'
+  /prices/basket:
+    $ref: './paths/prices.yaml#/prices-basket'
+  /prices/stores:
+    $ref: './paths/prices.yaml#/prices-stores'
+
+  # ==================== AI ====================
+  /ai/photo-to-recipe:
+    $ref: './paths/ai.yaml#/ai-photo-to-recipe'
+  /ai/photo-to-list:
+    $ref: './paths/ai.yaml#/ai-photo-to-list'
+  /ai/photo-to-nutrition:
+    $ref: './paths/ai.yaml#/ai-photo-to-nutrition'
+  /ai/receipt-scan:
+    $ref: './paths/ai.yaml#/ai-receipt-scan'
+  /ai/generate-recipe:
+    $ref: './paths/ai.yaml#/ai-generate-recipe'
+  /ai/categorise:
+    $ref: './paths/ai.yaml#/ai-categorise'
+  /ai/import-paper-list:
+    $ref: './paths/ai.yaml#/ai-import-paper-list'
+  /ai/import-recipe-photo:
+    $ref: './paths/ai.yaml#/ai-import-recipe-photo'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Cognito JWT access token
+
+  schemas:
+    $ref: './schemas/_index.yaml'
+
+  parameters:
+    $ref: './parameters/_index.yaml'
+
+  responses:
+    $ref: './responses/_index.yaml'

@@ -1,0 +1,182 @@
+PaginatedResponse:
+  type: object
+  properties:
+    items:
+      type: array
+      items: {}
+      description: Array of result items
+    total:
+      type: integer
+      description: Total number of items (if available)
+      example: 42
+    lastEvaluatedKey:
+      type: string
+      description: Encoded pagination cursor for next page
+      example: 'eyJwayI6IkZBTUlMWSNhYmMxMjMiLCJzayI6IkxJU1QjZGVmNDU2In0='
+    hasMore:
+      type: boolean
+      description: Whether more results are available
+      example: true
+  required:
+    - items
+    - hasMore
+
+ErrorResponse:
+  type: object
+  properties:
+    message:
+      type: string
+      description: Human-readable error message
+      example: 'Validation error'
+    code:
+      type: string
+      description: Machine-readable error code
+      example: 'VALIDATION_ERROR'
+    details:
+      type: string
+      description: Additional error details
+      example: '"name" is required'
+  required:
+    - message
+
+SuccessMessage:
+  type: object
+  properties:
+    message:
+      type: string
+      description: Success message
+      example: 'Operation completed successfully'
+  required:
+    - message
+
+UKSupermarket:
+  type: string
+  enum:
+    - TESCO
+    - SAINSBURYS
+    - ASDA
+    - MORRISONS
+    - ALDI
+    - LIDL
+    - WAITROSE
+    - OCADO
+    - COOP
+    - MS_FOOD
+  description: UK supermarket identifier
+  example: TESCO
+
+StockStatus:
+  type: string
+  enum:
+    - IN_STOCK
+    - LOW_STOCK
+    - OUT_OF_STOCK
+    - EXPIRED
+  description: Inventory item stock status
+  example: IN_STOCK
+
+MealType:
+  type: string
+  enum:
+    - BREAKFAST
+    - LUNCH
+    - SNACK
+    - DINNER
+    - DESSERT
+  description: |
+    Meal type. Standard types are provided but custom strings are also accepted.
+  example: DINNER
+
+Difficulty:
+  type: string
+  enum:
+    - easy
+    - medium
+    - hard
+  description: Recipe difficulty level
+  example: medium
+
+Unit:
+  type: string
+  enum:
+    - each
+    - g
+    - kg
+    - ml
+    - l
+    - oz
+    - lb
+    - cup
+    - tbsp
+    - tsp
+    - bunch
+    - pack
+    - tin
+    - bottle
+    - bag
+    - box
+    - jar
+    - slice
+    - piece
+    - clove
+    - head
+    - stalk
+    - sprig
+    - pinch
+  description: Unit of measurement
+  example: g
+
+GroceryCategory:
+  type: string
+  enum:
+    - Fruit & Vegetables
+    - Meat & Poultry
+    - Fish & Seafood
+    - Dairy & Eggs
+    - Bread & Bakery
+    - Cereals & Breakfast
+    - Pasta, Rice & Grains
+    - Tinned & Canned Goods
+    - Sauces & Condiments
+    - Herbs, Spices & Seasonings
+    - Snacks & Crisps
+    - Biscuits & Confectionery
+    - Frozen Food
+    - Drinks & Beverages
+    - Tea & Coffee
+    - Alcohol
+    - Baby & Toddler
+    - Health & Beauty
+    - Household & Cleaning
+    - Pet Food & Supplies
+    - World Foods
+    - Free From
+    - Organic
+    - Deli & Prepared Foods
+    - Other
+  description: Grocery item category
+  example: 'Fruit & Vegetables'
+
+InventoryLocationEnum:
+  type: string
+  enum:
+    - FRIDGE
+    - FREEZER
+    - PANTRY
+    - CUPBOARD
+    - SPICE_RACK
+    - FRUIT_BOWL
+    - BREAD_BIN
+    - DRINKS_CABINET
+    - WINE_RACK
+    - GARAGE
+    - UTILITY_ROOM
+    - SHED
+    - CELLAR
+    - COUNTERTOP
+    - UNDER_SINK
+    - BATHROOM
+    - MEDICINE_CABINET
+    - OTHER
+  description: Built-in inventory location. Custom locations are also supported as free-text strings.
+  example: FRIDGE

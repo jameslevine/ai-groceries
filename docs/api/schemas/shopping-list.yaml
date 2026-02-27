@@ -1,0 +1,461 @@
+ShoppingList:
+  type: object
+  properties:
+    listId:
+      type: string
+      format: uuid
+      description: Unique list identifier
+      example: 880e8400-e29b-41d4-a716-446655440003
+    familyId:
+      type: string
+      format: uuid
+      description: Family group that owns this list
+      example: 660e8400-e29b-41d4-a716-446655440001
+    name:
+      type: string
+      description: List name
+      example: Weekly Shop
+    items:
+      type: array
+      items:
+        $ref: '#/ShoppingListItem'
+      description: Items in the list
+    sharedWith:
+      type: array
+      items:
+        type: string
+        format: uuid
+      description: User IDs this list is shared with
+      example: [550e8400-e29b-41d4-a716-446655440000]
+    isFavourite:
+      type: boolean
+      description: Whether this list is marked as favourite
+      default: false
+      example: false
+    createdBy:
+      type: string
+      format: uuid
+      description: User ID of list creator
+      example: 550e8400-e29b-41d4-a716-446655440000
+    createdAt:
+      type: string
+      format: date-time
+      example: '2025-06-01T08:00:00.000Z'
+    updatedAt:
+      type: string
+      format: date-time
+      example: '2025-06-01T09:30:00.000Z'
+  required:
+    - listId
+    - familyId
+    - name
+    - items
+    - sharedWith
+    - isFavourite
+    - createdBy
+    - createdAt
+    - updatedAt
+
+ShoppingListSummary:
+  type: object
+  description: Lightweight list representation for list views
+  properties:
+    listId:
+      type: string
+      format: uuid
+      example: 880e8400-e29b-41d4-a716-446655440003
+    name:
+      type: string
+      example: Weekly Shop
+    itemCount:
+      type: integer
+      description: Total number of items
+      example: 24
+    checkedCount:
+      type: integer
+      description: Number of checked items
+      example: 8
+    isFavourite:
+      type: boolean
+      example: false
+    createdBy:
+      type: string
+      format: uuid
+      example: 550e8400-e29b-41d4-a716-446655440000
+    updatedAt:
+      type: string
+      format: date-time
+      example: '2025-06-01T09:30:00.000Z'
+  required:
+    - listId
+    - name
+    - itemCount
+    - checkedCount
+    - isFavourite
+    - updatedAt
+
+ShoppingListItem:
+  type: object
+  properties:
+    itemId:
+      type: string
+      format: uuid
+      description: Unique item identifier within the list
+      example: 990e8400-e29b-41d4-a716-446655440004
+    name:
+      type: string
+      description: Item name
+      example: Semi-Skimmed Milk
+    quantity:
+      type: number
+      minimum: 0
+      description: Quantity needed
+      default: 1
+      example: 2
+    unit:
+      type: string
+      description: Unit of measurement
+      default: each
+      example: l
+    category:
+      type: string
+      description: Item category for grouping
+      example: Dairy & Eggs
+    subcategory:
+      type: string
+      description: Item subcategory
+      example: Milk
+    aisle:
+      type: string
+      description: Store aisle for sorting
+      example: Aisle 3
+    imageUrl:
+      type: string
+      format: uri
+      description: Item image URL
+      example: https://images.aigroceries.co.uk/items/milk-semi-skimmed.jpg
+    isChecked:
+      type: boolean
+      description: Whether the item has been picked up
+      default: false
+      example: false
+    price:
+      type: number
+      format: float
+      description: Price in GBP (pence)
+      example: 125
+    store:
+      type: string
+      description: Preferred store for this item
+      example: Tesco
+    barcode:
+      type: string
+      description: Product barcode (EAN/UPC)
+      example: '5000128000505'
+    notes:
+      type: string
+      description: Additional notes
+      example: Get the green top one
+    addedBy:
+      type: string
+      format: uuid
+      description: User ID who added this item
+      example: 550e8400-e29b-41d4-a716-446655440000
+    addedAt:
+      type: string
+      format: date-time
+      description: When the item was added
+      example: '2025-06-01T08:15:00.000Z'
+  required:
+    - itemId
+    - name
+    - quantity
+    - unit
+    - isChecked
+    - addedBy
+    - addedAt
+
+CreateShoppingListRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: List name
+      example: Weekly Shop
+    items:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            minLength: 1
+            maxLength: 200
+            example: Semi-Skimmed Milk
+          quantity:
+            type: number
+            minimum: 0
+            default: 1
+            example: 2
+          unit:
+            type: string
+            maxLength: 50
+            default: each
+            example: l
+          category:
+            type: string
+            maxLength: 100
+            example: Dairy & Eggs
+          subcategory:
+            type: string
+            maxLength: 100
+            example: Milk
+          aisle:
+            type: string
+            maxLength: 100
+            example: Aisle 3
+          imageUrl:
+            type: string
+            format: uri
+          barcode:
+            type: string
+            maxLength: 50
+            example: '5000128000505'
+          notes:
+            type: string
+            maxLength: 500
+        required:
+          - name
+      description: Initial items to add to the list
+  required:
+    - name
+
+UpdateShoppingListRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: Updated list name
+      example: Saturday Big Shop
+    isFavourite:
+      type: boolean
+      description: Mark/unmark as favourite
+      example: true
+
+AddShoppingListItemRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+      description: Item name
+      example: Wholemeal Bread
+    quantity:
+      type: number
+      minimum: 0
+      default: 1
+      description: Quantity
+      example: 1
+    unit:
+      type: string
+      maxLength: 50
+      default: each
+      description: Unit of measurement
+      example: each
+    category:
+      type: string
+      maxLength: 100
+      description: Category
+      example: Bread & Bakery
+    subcategory:
+      type: string
+      maxLength: 100
+      description: Subcategory
+      example: Sliced Bread
+    aisle:
+      type: string
+      maxLength: 100
+      description: Aisle
+      example: Aisle 1
+    imageUrl:
+      type: string
+      format: uri
+      description: Image URL
+    barcode:
+      type: string
+      maxLength: 50
+      description: Barcode
+      example: '5010044000701'
+    notes:
+      type: string
+      maxLength: 500
+      description: Notes
+      example: Hovis brand preferred
+  required:
+    - name
+
+UpdateShoppingListItemRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 200
+    quantity:
+      type: number
+      minimum: 0
+    unit:
+      type: string
+      maxLength: 50
+    category:
+      type: string
+      maxLength: 100
+    subcategory:
+      type: string
+      maxLength: 100
+    aisle:
+      type: string
+      maxLength: 100
+    imageUrl:
+      type: string
+      format: uri
+    isChecked:
+      type: boolean
+      description: Mark item as checked/unchecked
+    barcode:
+      type: string
+      maxLength: 50
+    notes:
+      type: string
+      maxLength: 500
+
+ShareListRequest:
+  type: object
+  properties:
+    userIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 1
+      description: User IDs to share the list with
+      example: [aa0e8400-e29b-41d4-a716-446655440005]
+    method:
+      type: string
+      enum:
+        - app
+        - email
+        - sms
+      description: Sharing method
+      default: app
+      example: app
+    message:
+      type: string
+      maxLength: 500
+      description: Optional message to include with the share
+      example: Here's our shopping list for this week!
+  required:
+    - userIds
+
+ShoppingListHistory:
+  type: object
+  properties:
+    historyId:
+      type: string
+      format: uuid
+      description: History entry identifier
+      example: bb0e8400-e29b-41d4-a716-446655440006
+    listId:
+      type: string
+      format: uuid
+      description: Original list identifier
+      example: 880e8400-e29b-41d4-a716-446655440003
+    name:
+      type: string
+      description: List name at time of completion
+      example: Weekly Shop
+    items:
+      type: array
+      items:
+        $ref: '#/ShoppingListItem'
+    totalItems:
+      type: integer
+      description: Total number of items
+      example: 24
+    totalCost:
+      type: number
+      format: float
+      description: Total cost in pence (if prices were tracked)
+      example: 4520
+    store:
+      type: string
+      description: Store where shopping was done
+      example: Tesco
+    completedAt:
+      type: string
+      format: date-time
+      description: When the list was completed
+      example: '2025-06-01T11:45:00.000Z'
+    completedBy:
+      type: string
+      format: uuid
+      description: User who completed the list
+      example: 550e8400-e29b-41d4-a716-446655440000
+  required:
+    - historyId
+    - listId
+    - name
+    - items
+    - totalItems
+    - completedAt
+    - completedBy
+
+ListTemplate:
+  type: object
+  properties:
+    templateId:
+      type: string
+      format: uuid
+      description: Template identifier
+      example: cc0e8400-e29b-41d4-a716-446655440007
+    name:
+      type: string
+      description: Template name
+      example: Weekly Essentials
+    items:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            example: Semi-Skimmed Milk
+          quantity:
+            type: number
+            example: 2
+          unit:
+            type: string
+            example: l
+          category:
+            type: string
+            example: Dairy & Eggs
+      description: Template items
+    createdBy:
+      type: string
+      format: uuid
+      example: 550e8400-e29b-41d4-a716-446655440000
+    createdAt:
+      type: string
+      format: date-time
+      example: '2025-03-15T10:00:00.000Z'
+  required:
+    - templateId
+    - name
+    - items
+    - createdBy
+    - createdAt

@@ -1,0 +1,173 @@
+# ==================== Auth ====================
+RegisterRequest:
+  $ref: './auth.yaml#/RegisterRequest'
+LoginRequest:
+  $ref: './auth.yaml#/LoginRequest'
+VerifyEmailRequest:
+  $ref: './auth.yaml#/VerifyEmailRequest'
+ForgotPasswordRequest:
+  $ref: './auth.yaml#/ForgotPasswordRequest'
+ResetPasswordRequest:
+  $ref: './auth.yaml#/ResetPasswordRequest'
+RefreshTokenRequest:
+  $ref: './auth.yaml#/RefreshTokenRequest'
+AuthTokens:
+  $ref: './auth.yaml#/AuthTokens'
+
+# ==================== Users ====================
+User:
+  $ref: './user.yaml#/User'
+UserPreferences:
+  $ref: './user.yaml#/UserPreferences'
+UpdateUserRequest:
+  $ref: './user.yaml#/UpdateUserRequest'
+UpdatePreferencesRequest:
+  $ref: './user.yaml#/UpdatePreferencesRequest'
+RewardCard:
+  $ref: './user.yaml#/RewardCard'
+CreateRewardCardRequest:
+  $ref: './user.yaml#/CreateRewardCardRequest'
+Family:
+  $ref: './user.yaml#/Family'
+FamilyMember:
+  $ref: './user.yaml#/FamilyMember'
+CreateFamilyRequest:
+  $ref: './user.yaml#/CreateFamilyRequest'
+InviteFamilyMemberRequest:
+  $ref: './user.yaml#/InviteFamilyMemberRequest'
+
+# ==================== Shopping Lists ====================
+ShoppingList:
+  $ref: './shopping-list.yaml#/ShoppingList'
+ShoppingListSummary:
+  $ref: './shopping-list.yaml#/ShoppingListSummary'
+ShoppingListItem:
+  $ref: './shopping-list.yaml#/ShoppingListItem'
+CreateShoppingListRequest:
+  $ref: './shopping-list.yaml#/CreateShoppingListRequest'
+UpdateShoppingListRequest:
+  $ref: './shopping-list.yaml#/UpdateShoppingListRequest'
+AddShoppingListItemRequest:
+  $ref: './shopping-list.yaml#/AddShoppingListItemRequest'
+UpdateShoppingListItemRequest:
+  $ref: './shopping-list.yaml#/UpdateShoppingListItemRequest'
+ShareListRequest:
+  $ref: './shopping-list.yaml#/ShareListRequest'
+ShoppingListHistory:
+  $ref: './shopping-list.yaml#/ShoppingListHistory'
+ListTemplate:
+  $ref: './shopping-list.yaml#/ListTemplate'
+
+# ==================== Inventory ====================
+InventoryItem:
+  $ref: './inventory.yaml#/InventoryItem'
+CreateInventoryItemRequest:
+  $ref: './inventory.yaml#/CreateInventoryItemRequest'
+UpdateInventoryItemRequest:
+  $ref: './inventory.yaml#/UpdateInventoryItemRequest'
+InventoryLocation:
+  $ref: './inventory.yaml#/InventoryLocation'
+CreateLocationRequest:
+  $ref: './inventory.yaml#/CreateLocationRequest'
+InventorySummary:
+  $ref: './inventory.yaml#/InventorySummary'
+
+# ==================== Recipes ====================
+Recipe:
+  $ref: './recipe.yaml#/Recipe'
+RecipeSummary:
+  $ref: './recipe.yaml#/RecipeSummary'
+RecipeIngredient:
+  $ref: './recipe.yaml#/RecipeIngredient'
+RecipeDirection:
+  $ref: './recipe.yaml#/RecipeDirection'
+NutritionInfo:
+  $ref: './recipe.yaml#/NutritionInfo'
+CreateRecipeRequest:
+  $ref: './recipe.yaml#/CreateRecipeRequest'
+UpdateRecipeRequest:
+  $ref: './recipe.yaml#/UpdateRecipeRequest'
+RateRecipeRequest:
+  $ref: './recipe.yaml#/RateRecipeRequest'
+ImportRecipeUrlRequest:
+  $ref: './recipe.yaml#/ImportRecipeUrlRequest'
+IngredientStockStatus:
+  $ref: './recipe.yaml#/IngredientStockStatus'
+AddToListRequest:
+  $ref: './recipe.yaml#/AddToListRequest'
+
+# ==================== Meals ====================
+MealPlan:
+  $ref: './meal.yaml#/MealPlan'
+MealPlanItem:
+  $ref: './meal.yaml#/MealPlanItem'
+CreateMealRequest:
+  $ref: './meal.yaml#/CreateMealRequest'
+UpdateMealRequest:
+  $ref: './meal.yaml#/UpdateMealRequest'
+CopyWeekRequest:
+  $ref: './meal.yaml#/CopyWeekRequest'
+GenerateListFromMealsRequest:
+  $ref: './meal.yaml#/GenerateListFromMealsRequest'
+NutritionSummary:
+  $ref: './meal.yaml#/NutritionSummary'
+DailyNutrition:
+  $ref: './meal.yaml#/DailyNutrition'
+
+# ==================== Products ====================
+Product:
+  $ref: './product.yaml#/Product'
+ProductPrice:
+  $ref: './product.yaml#/ProductPrice'
+PriceComparison:
+  $ref: './product.yaml#/PriceComparison'
+PriceHistory:
+  $ref: './product.yaml#/PriceHistory'
+PriceHistoryEntry:
+  $ref: './product.yaml#/PriceHistoryEntry'
+BasketPriceComparison:
+  $ref: './product.yaml#/BasketPriceComparison'
+StoreSummary:
+  $ref: './product.yaml#/StoreSummary'
+Deal:
+  $ref: './product.yaml#/Deal'
+ProductCategory:
+  $ref: './product.yaml#/ProductCategory'
+
+# ==================== AI ====================
+AIPhotoUpload:
+  $ref: './ai.yaml#/AIPhotoUpload'
+AIRecipeResult:
+  $ref: './ai.yaml#/AIRecipeResult'
+AIShoppingListResult:
+  $ref: './ai.yaml#/AIShoppingListResult'
+AINutritionResult:
+  $ref: './ai.yaml#/AINutritionResult'
+AIReceiptResult:
+  $ref: './ai.yaml#/AIReceiptResult'
+AIGenerateRecipeRequest:
+  $ref: './ai.yaml#/AIGenerateRecipeRequest'
+AICategoriseRequest:
+  $ref: './ai.yaml#/AICategoriseRequest'
+AICategoriseResult:
+  $ref: './ai.yaml#/AICategoriseResult'
+
+# ==================== Common ====================
+PaginatedResponse:
+  $ref: './common.yaml#/PaginatedResponse'
+ErrorResponse:
+  $ref: './common.yaml#/ErrorResponse'
+SuccessMessage:
+  $ref: './common.yaml#/SuccessMessage'
+UKSupermarket:
+  $ref: './common.yaml#/UKSupermarket'
+StockStatus:
+  $ref: './common.yaml#/StockStatus'
+MealType:
+  $ref: './common.yaml#/MealType'
+Difficulty:
+  $ref: './common.yaml#/Difficulty'
+Unit:
+  $ref: './common.yaml#/Unit'
+GroceryCategory:
+  $ref: './common.yaml#/GroceryCategory'

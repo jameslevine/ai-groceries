@@ -1,0 +1,406 @@
+Product:
+  type: object
+  properties:
+    productId:
+      type: string
+      format: uuid
+      description: Unique product identifier
+      example: 330e8400-e29b-41d4-a716-446655440013
+    barcode:
+      type: string
+      description: Product barcode (EAN-13 or UPC)
+      example: '5000128000505'
+    name:
+      type: string
+      description: Product name
+      example: Cravendale Semi-Skimmed Milk 2L
+    brand:
+      type: string
+      description: Product brand
+      example: Cravendale
+    category:
+      type: string
+      description: Product category
+      example: Dairy & Eggs
+    subcategory:
+      type: string
+      description: Product subcategory
+      example: Milk
+    imageUrl:
+      type: string
+      format: uri
+      description: Product image URL
+      example: https://images.aigroceries.co.uk/products/cravendale-milk-2l.jpg
+    description:
+      type: string
+      description: Product description
+      example: Fresh filtered semi-skimmed milk, stays fresher for longer.
+    weight:
+      type: string
+      description: Product weight/volume
+      example: 2L
+    unit:
+      type: string
+      description: Base unit for price comparison
+      example: l
+  required:
+    - productId
+    - barcode
+    - name
+    - category
+
+ProductPrice:
+  type: object
+  properties:
+    productId:
+      type: string
+      format: uuid
+      example: 330e8400-e29b-41d4-a716-446655440013
+    store:
+      $ref: './common.yaml#/UKSupermarket'
+    storeName:
+      type: string
+      description: Human-readable store name
+      example: Tesco
+    price:
+      type: integer
+      description: Price in pence
+      example: 175
+    priceFormatted:
+      type: string
+      description: Formatted price string
+      example: £1.75
+    pricePerUnit:
+      type: number
+      format: float
+      description: Price per unit in pence (for comparison)
+      example: 87.5
+    unitForPricing:
+      type: string
+      description: Unit used for price-per-unit calculation
+      example: per litre
+    isOnOffer:
+      type: boolean
+      description: Whether the product is currently on offer
+      example: false
+    offerDescription:
+      type: string
+      description: Offer details (if on offer)
+      example: 2 for £3
+    originalPrice:
+      type: integer
+      description: Original price before offer (in pence)
+      example: 199
+    url:
+      type: string
+      format: uri
+      description: Direct link to product on store website
+      example: https://www.tesco.com/groceries/en-GB/products/123456789
+    scrapedAt:
+      type: string
+      format: date-time
+      description: When this price was last scraped
+      example: '2025-06-24T06:00:00.000Z'
+  required:
+    - productId
+    - store
+    - storeName
+    - price
+    - priceFormatted
+    - isOnOffer
+    - scrapedAt
+
+PriceComparison:
+  type: object
+  description: Price comparison for a single product across stores
+  properties:
+    product:
+      $ref: '#/Product'
+    prices:
+      type: array
+      items:
+        $ref: '#/ProductPrice'
+      description: Prices from each store (sorted cheapest first)
+    bestPrice:
+      $ref: '#/ProductPrice'
+    averagePrice:
+      type: integer
+      description: Average price across all stores (in pence)
+      example: 182
+    averagePriceFormatted:
+      type: string
+      example: £1.82
+  required:
+    - product
+    - prices
+    - bestPrice
+    - averagePrice
+    - averagePriceFormatted
+
+PriceHistory:
+  type: object
+  description: Price history for a product at a specific store
+  properties:
+    productId:
+      type: string
+      format: uuid
+      example: 330e8400-e29b-41d4-a716-446655440013
+    productName:
+      type: string
+      example: Cravendale Semi-Skimmed Milk 2L
+    store:
+      $ref: './common.yaml#/UKSupermarket'
+    storeName:
+      type: string
+      example: Tesco
+    entries:
+      type: array
+      items:
+        $ref: '#/PriceHistoryEntry'
+      description: Historical price entries (sorted by date descending)
+    currentPrice:
+      type: integer
+      description: Current price in pence
+      example: 175
+    lowestPrice:
+      type: integer
+      description: Lowest recorded price in pence
+      example: 149
+    highestPrice:
+      type: integer
+      description: Highest recorded price in pence
+      example: 215
+    averagePrice:
+      type: integer
+      description: Average price over the period in pence
+      example: 180
+  required:
+    - productId
+    - productName
+    - store
+    - entries
+    - currentPrice
+
+PriceHistoryEntry:
+  type: object
+  properties:
+    date:
+      type: string
+      format: date
+      description: Date of the price record
+      example: '2025-06-24'
+    price:
+      type: integer
+      description: Price in pence
+      example: 175
+    isOnOffer:
+      type: boolean
+      example: false
+  required:
+    - date
+    - price
+
+BasketPriceComparison:
+  type: object
+  description: Total basket price comparison across stores
+  properties:
+    items:
+      type: array
+      items:
+        type: object
+        properties:
+          productId:
+            type: string
+            format: uuid
+          productName:
+            type: string
+            example: Semi-Skimmed Milk 2L
+          quantity:
+            type: integer
+            example: 1
+          prices:
+            type: object
+            additionalProperties:
+              type: integer
+            description: Price per store (store code → price in pence)
+            example:
+              TESCO: 175
+              SAINSBURYS: 180
+              ASDA: 165
+      description: Individual item prices per store
+    storeTotals:
+      type: array
+      items:
+        type: object
+        properties:
+          store:
+            $ref: './common.yaml#/UKSupermarket'
+          storeName:
+            type: string
+            example: Asda
+          total:
+            type: integer
+            description: Total basket cost in pence
+            example: 4520
+          totalFormatted:
+            type: string
+            example: £45.20
+          itemsAvailable:
+            type: integer
+            description: Number of items available at this store
+            example: 22
+          itemsMissing:
+            type: integer
+            description: Number of items not found at this store
+            example: 2
+      description: Total cost per store (sorted cheapest first)
+    cheapestStore:
+      type: string
+      description: Store code with the cheapest total
+      example: ASDA
+    cheapestTotal:
+      type: integer
+      description: Cheapest total in pence
+      example: 4520
+    cheapestTotalFormatted:
+      type: string
+      example: £45.20
+    potentialSavings:
+      type: integer
+      description: Savings vs most expensive store (in pence)
+      example: 830
+    potentialSavingsFormatted:
+      type: string
+      example: £8.30
+  required:
+    - items
+    - storeTotals
+    - cheapestStore
+    - cheapestTotal
+    - cheapestTotalFormatted
+
+StoreSummary:
+  type: object
+  properties:
+    store:
+      $ref: './common.yaml#/UKSupermarket'
+    name:
+      type: string
+      description: Store display name
+      example: Tesco
+    logoUrl:
+      type: string
+      format: uri
+      description: Store logo URL
+      example: https://images.aigroceries.co.uk/stores/tesco-logo.png
+    colour:
+      type: string
+      description: Brand colour hex code
+      example: '#00539F'
+    websiteUrl:
+      type: string
+      format: uri
+      description: Store website URL
+      example: https://www.tesco.com
+    onlineShoppingUrl:
+      type: string
+      format: uri
+      description: Online grocery shopping URL
+      example: https://www.tesco.com/groceries
+    totalProducts:
+      type: integer
+      description: Number of products tracked for this store
+      example: 15420
+    lastScrapedAt:
+      type: string
+      format: date-time
+      description: When prices were last updated
+      example: '2025-06-24T06:00:00.000Z'
+  required:
+    - store
+    - name
+    - colour
+    - websiteUrl
+
+Deal:
+  type: object
+  properties:
+    dealId:
+      type: string
+      format: uuid
+      example: 440e8400-e29b-41d4-a716-446655440014
+    product:
+      $ref: '#/Product'
+    store:
+      $ref: './common.yaml#/UKSupermarket'
+    storeName:
+      type: string
+      example: Tesco
+    originalPrice:
+      type: integer
+      description: Original price in pence
+      example: 350
+    dealPrice:
+      type: integer
+      description: Deal price in pence
+      example: 200
+    savingsAmount:
+      type: integer
+      description: Savings in pence
+      example: 150
+    savingsPercentage:
+      type: number
+      format: float
+      description: Savings as percentage
+      example: 42.9
+    offerDescription:
+      type: string
+      description: Offer description
+      example: Was £3.50, now £2.00
+    validFrom:
+      type: string
+      format: date
+      example: '2025-06-20'
+    validUntil:
+      type: string
+      format: date
+      example: '2025-06-27'
+  required:
+    - dealId
+    - product
+    - store
+    - storeName
+    - dealPrice
+    - offerDescription
+
+ProductCategory:
+  type: object
+  properties:
+    categoryId:
+      type: string
+      example: dairy-eggs
+    name:
+      type: string
+      example: Dairy & Eggs
+    subcategories:
+      type: array
+      items:
+        type: object
+        properties:
+          subcategoryId:
+            type: string
+            example: milk
+          name:
+            type: string
+            example: Milk
+          productCount:
+            type: integer
+            example: 245
+    productCount:
+      type: integer
+      description: Total products in this category
+      example: 1250
+  required:
+    - categoryId
+    - name
+    - productCount
